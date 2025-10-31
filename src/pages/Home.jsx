@@ -10,7 +10,7 @@ export default function Home() {
       old: "65.000đ",
       price: "45.000đ",
       sale: "-31%",
-      img: "/img/vitc.svg",
+      img: "/img/vitc.png",
     },
     {
       id: 2,
@@ -18,7 +18,7 @@ export default function Home() {
       old: "40.000đ",
       price: "30.000đ",
       sale: "-25%",
-      img: "/img/mask.svg",
+      img: "/img/mask.png",
     },
     {
       id: 3,
@@ -26,7 +26,7 @@ export default function Home() {
       old: "150.000đ",
       price: "120.000đ",
       sale: "-20%",
-      img: "/img/thermo.svg",
+      img: "/img/thermo.png",
     },
     {
       id: 4,
@@ -34,7 +34,7 @@ export default function Home() {
       old: null,
       price: "160.000đ",
       sale: "NEW",
-      img: "/img/sunscreen.svg",
+      img: "/img/sunscreen.png",
     },
   ];
 
