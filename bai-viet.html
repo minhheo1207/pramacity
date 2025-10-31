@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bài viết / Tin sức khỏe</title>
+    <link rel="stylesheet" href="./src/assets/css/styles.css" />
+  </head>
+  <body>
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="container topbar__wrap">
+        <div class="topbar__left">
+          <span class="chip">🚚 Miễn phí ship đơn từ 300K</span>
+          <a href="#" class="link">Hệ thống nhà thuốc</a>
+          <a href="#" class="link">Tra cứu đơn hàng</a>
+        </div>
+        <div class="topbar__right">
+          <span>📞 Hotline: <strong>1800 6821</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="site-header">
+      <div class="container header__wrap">
+        <a href="./index.html" class="logo">Pharma<span>City</span></a>
+
+        <div class="menu-trigger" tabindex="0">
+          <button class="btn btn--ghost">☰ Danh mục</button>
+          <div class="dropdown">
+            <a href="./khuyen-mai.html">Khuyến mãi</a>
+            <a href="./ban-chay.html">Bán chạy</a>
+            <a href="./hang-moi.html">Hàng mới</a>
+            <a href="#">TPBVSK</a>
+            <a href="#">Mẹ & Bé</a>
+          </div>
+        </div>
+
+        <form class="search" action="#" method="get">
+          <input type="text" name="q" placeholder="Tìm bài viết sức khỏe..." />
+          <button type="submit" class="btn">Tìm</button>
+        </form>
+
+        <nav class="quick-nav">
+          <a href="./bai-viet.html" class="quick-link">📰 Bài viết</a>
+          <a href="#" class="quick-link">👤</a>
+          <a href="#" class="quick-link">🛒 <span class="badge">0</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- BANNER / TIÊU ĐỀ -->
+    <section class="blog-hero">
+      <div class="container blog-hero__wrap">
+        <div>
+          <h1>Tin tức & Kiến thức sức khỏe</h1>
+          <p class="muted">
+            Cập nhật tin mới, hướng dẫn dùng thuốc an toàn, dinh dưỡng, mẹ & bé…
+          </p>
+        </div>
+        <div class="blog-hero__tags">
+          <a href="#" class="pill active">Tất cả</a>
+          <a href="#" class="pill">Thuốc & sử dụng</a>
+          <a href="#" class="pill">Dinh dưỡng</a>
+          <a href="#" class="pill">Mẹ & Bé</a>
+          <a href="#" class="pill">Thiết bị y tế</a>
+        </div>
+      </div>
+    </section>
+
+    <main class="container">
+      <div class="blog-layout">
+        <!-- LIST BÀI VIẾT -->
+        <section class="section blog-list">
+          <!-- BÀI 1 -->
+          <article class="post-card">
+            <a
+              class="post-card__thumb"
+              style="background-image: url('./img/omega.jpg')"
+              href="#"
+            ></a>
+            <div class="post-card__content">
+              <a class="post-card__title" href="#"
+                >5 lưu ý khi dùng Omega-3 để đạt hiệu quả tốt</a
+              >
+              <div class="post-card__meta">
+                Dinh dưỡng • 12/08/2025 • 4 phút đọc
+              </div>
+              <p class="post-card__excerpt">
+                Bổ sung Omega-3 giúp tim mạch, mắt và não bộ, nhưng cần chú ý
+                liều dùng – thời điểm uống – tương tác với thuốc chống đông…
+              </p>
+              <a class="btn" href="#">Đọc tiếp</a>
+            </div>
+          </article>
+
+          <!-- BÀI 2 -->
+          <article class="post-card">
+            <a
+              class="post-card__thumb"
+              style="background-image: url('./public/img/thermo.jpg')"
+              href="#"
+            ></a>
+            <div class="post-card__content">
+              <a class="post-card__title" href="#"
+                >Cách đo nhiệt độ đúng khi trẻ bị sốt</a
+              >
+              <div class="post-card__meta">
+                Mẹ & Bé • 05/08/2025 • 3 phút đọc
+              </div>
+              <p class="post-card__excerpt">
+                Dùng nhiệt kế điện tử và theo dõi theo khung giờ là chìa khóa.
+                Bài viết hướng dẫn chọn vị trí đo, cách vệ sinh và lưu ý an
+                toàn.
+              </p>
+              <a class="btn" href="#">Đọc tiếp</a>
+            </div>
+          </article>
+
+          <!-- BÀI 3 -->
+          <article class="post-card">
+            <a
+              class="post-card__thumb"
+              style="background-image: url('./public/img/sunscreen.jpg')"
+              href="#"
+            ></a>
+            <div class="post-card__content">
+              <a class="post-card__title" href="#"
+                >Kem chống nắng: SPF bao nhiêu là đủ?</a
+              >
+              <div class="post-card__meta">
+                Chăm sóc da • 28/07/2025 • 5 phút đọc
+              </div>
+              <p class="post-card__excerpt">
+                SPF cao không phải lúc nào cũng tốt hơn. Quan trọng là bôi đủ
+                lượng, lặp lại đúng thời gian và chọn loại phù hợp với da.
+              </p>
+              <a class="btn" href="#">Đọc tiếp</a>
+            </div>
+          </article>
+
+          <!-- PHÂN TRANG -->
+          <div class="pagination">
+            <a class="page is-disabled" href="#">«</a>
+            <a class="page is-active" href="#">1</a>
+            <a class="page" href="#">2</a>
+            <a class="page" href="#">3</a>
+            <a class="page" href="#">»</a>
+          </div>
+        </section>
+
+        <!-- SIDEBAR -->
+        <aside class="blog-sidebar">
+          <div class="sidebar-box">
+            <h3>Chuyên mục</h3>
+            <ul class="sidebar-list">
+              <li><a href="#">Thuốc & sử dụng</a></li>
+              <li><a href="#">Dinh dưỡng</a></li>
+              <li><a href="#">Mẹ & Bé</a></li>
+              <li><a href="#">Chăm sóc cá nhân</a></li>
+              <li><a href="#">Thiết bị y tế</a></li>
+            </ul>
+          </div>
+
+          <div class="sidebar-box">
+            <h3>Bài nổi bật</h3>
+            <a class="hot-item" href="#">
+              <span
+                class="hot-thumb"
+                style="background-image: url('./public/img/vitc.jpg')"
+              ></span>
+              <span class="hot-title"
+                >Uống Vitamin C thế nào để không “quá liều”?</span
+              >
+            </a>
+            <a class="hot-item" href="#">
+              <span
+                class="hot-thumb"
+                style="background-image: url('./public/img/mask.jpg')"
+              ></span>
+              <span class="hot-title"
+                >Khẩu trang: chọn loại nào cho mùa dịch?</span
+              >
+            </a>
+            <a class="hot-item" href="#">
+              <span
+                class="hot-thumb"
+                style="background-image: url('./public/img/bp.jpg')"
+              ></span>
+              <span class="hot-title"
+                >Máy đo huyết áp: 5 tiêu chí quan trọng</span
+              >
+            </a>
+          </div>
+
+          <div class="sidebar-box subscribe-box">
+            <h3>Nhận bản tin</h3>
+            <p class="muted">Nhận bài viết mới và mã khuyến mãi qua email.</p>
+            <form class="subscribe-form" action="#" method="post">
+              <input type="email" required placeholder="Nhập email của bạn" />
+              <button class="btn btn--block" type="submit">Đăng ký</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="container">
+        <p class="footnote">© 2025 PharmaCity demo. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>
