@@ -1,6 +1,13 @@
 // src/main.jsx
 import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.jsx";
+import AppRouter from "./router/AppRouter.jsx";
 
-createRoot(document.getElementById("root")).render(<App />);
+// (tuỳ chọn) global css
+import "./assets/css/styles.css";
+
+createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <AppRouter />
+  </React.StrictMode>
+);

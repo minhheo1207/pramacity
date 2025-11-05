@@ -15,6 +15,11 @@ export default function Account() {
   const [openDetail, setOpenDetail] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
+  // --- 🔎 Trạng thái tìm kiếm/lọc cho Đơn hàng ---
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("all"); // all | pending | shipping | delivered | cancelled
+  const [sort, setSort] = useState("newest"); // newest | oldest | totalDesc | totalAsc
+
   useEffect(() => {
     if (user?.id) {
       seedOrdersIfEmpty(user.id);
@@ -23,6 +28,38 @@ export default function Account() {
   }, [user?.id]);
 
   const ordersCount = useMemo(() => orders.length, [orders]);
+
+  // --- 🔎 Tính toán danh sách sau khi tìm kiếm/lọc/sắp xếp ---
+  const filteredOrders = useMemo(() => {
+    const norm = (s) => (s || "").toLowerCase().trim();
+    let list = orders.map((o) => ({
+      ...o,
+      subtotal: o.items.reduce((s, it) => s + it.price * it.qty, 0),
+    }));
+
+    // Tìm kiếm theo mã đơn, tên sản phẩm
+    if (q.trim()) {
+      const k = norm(q);
+      list = list.filter(
+        (o) =>
+          norm(o.id).includes(k) ||
+          o.items.some((it) => norm(it.name).includes(k))
+      );
+    }
+
+    // Lọc theo trạng thái
+    if (status !== "all") {
+      list = list.filter((o) => o.status === status);
+    }
+
+    // Sắp xếp
+    if (sort === "newest") list.sort((a, b) => b.createdAt - a.createdAt);
+    if (sort === "oldest") list.sort((a, b) => a.createdAt - b.createdAt);
+    if (sort === "totalDesc") list.sort((a, b) => b.subtotal - a.subtotal);
+    if (sort === "totalAsc") list.sort((a, b) => a.subtotal - b.subtotal);
+
+    return list;
+  }, [orders, q, status, sort]);
 
   if (!user) {
     return (
@@ -62,10 +99,30 @@ export default function Account() {
 
   return (
     <main className="account lc">
-      {/* ➊ Thanh xanh trên đầu trang */}
+      {/* ➊ Thanh xanh trên đầu trang + ô tra cứu nhanh ngay trên PageBar */}
       <PageBar
         title="Tài khoản của tôi"
         subtitle="Quản lý hồ sơ, địa chỉ, đơn hàng và bảo mật"
+        /* PageBar hỗ trợ prop right để nhét thêm hành động/ô tìm kiếm:contentReference[oaicite:2]{index=2} */
+        right={
+          <form
+            className="pb-search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setTab("orders");
+            }}
+            title="Tra cứu nhanh đơn hàng"
+          >
+            <input
+              placeholder="Nhập mã đơn hoặc tên sản phẩm…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+            <button className="btn sm" type="submit">
+              Tra cứu
+            </button>
+          </form>
+        }
       />
 
       <div className="account__wrap container">
@@ -196,13 +253,52 @@ export default function Account() {
 
           {tab === "orders" && (
             <>
-              {/* ➍ Khung: Đơn hàng */}
-              <Frame title={`Đơn hàng của tôi (${ordersCount})`}>
-                {orders.length === 0 ? (
-                  <p>Chưa có đơn hàng.</p>
+              {/* ➍ Thanh công cụ: tìm kiếm + lọc + sắp xếp */}
+              <div className="orders-toolbar">
+                <input
+                  className="input"
+                  placeholder="Tìm theo mã đơn / sản phẩm…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                />
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="pending">Chờ xử lý</option>
+                  <option value="shipping">Đang giao</option>
+                  <option value="delivered">Đã giao</option>
+                  <option value="cancelled">Đã hủy</option>
+                </select>
+                <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                  <option value="newest">Mới nhất</option>
+                  <option value="oldest">Cũ nhất</option>
+                  <option value="totalDesc">Tổng tiền: cao → thấp</option>
+                  <option value="totalAsc">Tổng tiền: thấp → cao</option>
+                </select>
+                <button
+                  className="btn btn-light"
+                  type="button"
+                  onClick={() => {
+                    setQ("");
+                    setStatus("all");
+                    setSort("newest");
+                  }}
+                >
+                  Xóa lọc
+                </button>
+              </div>
+
+              {/* ➎ Khung: Đơn hàng */}
+              <Frame
+                title={`Đơn hàng của tôi (${filteredOrders.length}/${ordersCount})`}
+              >
+                {filteredOrders.length === 0 ? (
+                  <p>Không tìm thấy đơn hàng phù hợp.</p>
                 ) : (
                   <div className="orders-grid">
-                    {orders.map((o) => (
+                    {filteredOrders.map((o) => (
                       <div
                         className="order-card"
                         key={o.id}
@@ -230,14 +326,7 @@ export default function Account() {
                           <span>
                             {new Date(o.createdAt).toLocaleDateString()}
                           </span>
-                          <b>
-                            {fmt(
-                              o.items.reduce(
-                                (s, it) => s + it.price * it.qty,
-                                0
-                              )
-                            )}
-                          </b>
+                          <b>{fmt(o.subtotal)}</b>
                         </div>
                         <button
                           className="btn btn-light sm"
@@ -259,50 +348,44 @@ export default function Account() {
           )}
 
           {tab === "address" && (
-            <>
-              {/* ➎ Khung: Sổ địa chỉ */}
-              <Frame
-                title="Sổ địa chỉ"
-                actions={
-                  <button className="btn btn-primary">
-                    <i className="ri-add-line"></i> Thêm địa chỉ
-                  </button>
-                }
-              >
-                <p>Bạn chưa lưu địa chỉ nào.</p>
-              </Frame>
-            </>
+            <Frame
+              title="Sổ địa chỉ"
+              actions={
+                <button className="btn btn-primary">
+                  <i className="ri-add-line"></i> Thêm địa chỉ
+                </button>
+              }
+            >
+              <p>Bạn chưa lưu địa chỉ nào.</p>
+            </Frame>
           )}
 
           {tab === "password" && (
-            <>
-              {/* ➏ Khung: Đổi mật khẩu */}
-              <Frame title="Đổi mật khẩu">
-                <form
-                  className="form grid-2"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    alert("Demo: gọi API đổi mật khẩu");
-                  }}
-                >
-                  <label>
-                    Mật khẩu hiện tại
-                    <input type="password" required minLength={4} />
-                  </label>
-                  <label>
-                    Mật khẩu mới
-                    <input type="password" required minLength={4} />
-                  </label>
-                  <label>
-                    Nhập lại mật khẩu mới
-                    <input type="password" required minLength={4} />
-                  </label>
-                  <div className="row-end">
-                    <button className="btn btn-primary">Cập nhật</button>
-                  </div>
-                </form>
-              </Frame>
-            </>
+            <Frame title="Đổi mật khẩu">
+              <form
+                className="form grid-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert("Demo: gọi API đổi mật khẩu");
+                }}
+              >
+                <label>
+                  Mật khẩu hiện tại
+                  <input type="password" required minLength={4} />
+                </label>
+                <label>
+                  Mật khẩu mới
+                  <input type="password" required minLength={4} />
+                </label>
+                <label>
+                  Nhập lại mật khẩu mới
+                  <input type="password" required minLength={4} />
+                </label>
+                <div className="row-end">
+                  <button className="btn btn-primary">Cập nhật</button>
+                </div>
+              </form>
+            </Frame>
           )}
         </section>
       </div>
