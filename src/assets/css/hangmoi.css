@@ -1,0 +1,330 @@
+/* Container */
+.new-products .container {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+/* Grid/Slider */
+.fancy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+.as-slider {
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+.as-slider > * {
+  scroll-snap-align: start;
+}
+.as-slider::-webkit-scrollbar {
+  height: 8px;
+}
+.as-slider::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+.as-slider::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+/* Mobile arrows */
+.mob-arrows {
+  display: none;
+  position: relative;
+  height: 0;
+}
+.mob-arrows .arrow {
+  position: absolute;
+  top: -40px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+.mob-arrows .prev {
+  right: 52px;
+}
+.mob-arrows .next {
+  right: 10px;
+}
+.mob-arrows .arrow:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Card neo-glass */
+.product--neo {
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.02)
+    ),
+    radial-gradient(
+      1200px 400px at -20% -40%,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease;
+  min-height: 380px;
+}
+.product--neo:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+/* Media + gradient */
+.neo-media {
+  position: relative;
+  height: 210px;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: radial-gradient(
+      600px 200px at 20% -40%,
+      rgba(0, 229, 255, 0.22),
+      transparent 60%
+    ),
+    radial-gradient(
+      600px 200px at 120% 140%,
+      rgba(0, 168, 89, 0.25),
+      transparent 60%
+    ),
+    #0b2b66;
+}
+.neo-media picture,
+.neo-media img {
+  width: 100%;
+  height: 100%;
+}
+.neo-media img {
+  max-height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.3));
+  transform: translateZ(0);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.25s;
+}
+.product--neo:hover .neo-media img {
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* Shimmer */
+.neo-media .shine {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    75deg,
+    transparent,
+    rgba(255, 255, 255, 0.12),
+    transparent
+  );
+  transform: skewX(-15deg);
+  opacity: 0;
+  transition: 0.5s;
+  pointer-events: none;
+}
+.product--neo:hover .neo-media .shine {
+  left: 120%;
+  opacity: 0.9;
+}
+
+/* Fav + tooltip */
+.icon-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+.icon-fav:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.icon-fav[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.2s;
+}
+.icon-fav:hover::after {
+  opacity: 1;
+}
+
+/* Badges */
+.pill-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.pill-badge + .pill-badge {
+  left: auto;
+  right: 56px;
+}
+.is-new {
+  background: linear-gradient(90deg, #00a859, #00d693);
+}
+.is-hot {
+  background: linear-gradient(90deg, #ff6a00, #ff2e5f);
+}
+.is-sale {
+  right: 10px;
+  left: auto;
+  background: linear-gradient(90deg, #e53935, #ff6b6b);
+}
+
+/* Body */
+.product--neo .card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 14px;
+  color: #eaf1ff;
+}
+.meta-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #cfe0ff;
+}
+.meta-top .brand {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.meta-top .rating {
+  color: #ffd54f;
+}
+.meta-top .rating .muted {
+  color: #cfe0ff;
+  opacity: 0.85;
+}
+
+.card__title {
+  min-height: 42px;
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.card__title a {
+  color: #fff;
+  font-weight: 800;
+}
+
+.price-row.big {
+  margin: 8px 0 12px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.price-row .price {
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+}
+.price-row .price--old {
+  font-size: 13px;
+  color: #a5b5d1;
+  text-decoration: line-through;
+}
+
+.actions {
+  margin-top: auto;
+}
+.actions .btn {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.actions .btn.sm {
+  height: 36px;
+}
+.actions .btn.btn--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #e8f3ff;
+  background: transparent;
+}
+.actions .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Toast */
+.toast-wrap {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  gap: 8px;
+  z-index: 9999;
+}
+.toast-item {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  transform: translateY(8px);
+  opacity: 0;
+  transition: 0.25s;
+}
+.toast-item.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Responsive: mobile dùng dạng slider + nút */
+@media (max-width: 992px) {
+  .fancy-grid {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(260px, 1fr);
+  }
+  .mob-arrows {
+    display: block;
+  }
+}

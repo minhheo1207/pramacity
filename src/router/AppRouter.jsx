@@ -13,7 +13,7 @@ import DichVu from "../pages/DichVu";
 import KhuyenMai from "../pages/KhuyenMai";
 import ProductDetail from "../pages/ProductDetail";
 import BaiVietDetail from "../pages/BaiVietDetail";
-
+import NewProductDetail from "../pages/NewProductDetail";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -26,7 +26,6 @@ export default function AppRouter() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/account" element={<Account />} />
-
           {/* Trang danh mục */}
           <Route path="/bai-viet" element={<BaiViet />} />
           <Route path="/ban-chay" element={<BanChay />} />
@@ -37,7 +36,7 @@ export default function AppRouter() {
           {/* Chi tiết */}
           <Route path="/san-pham/:id" element={<ProductDetail />} />
           <Route path="/bai-viet/:id" element={<BaiVietDetail />} />
-
+          <Route path="/hang-moi/:id" element={<NewProductDetail />} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
