@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageBar from "../components/PageBar";
 import "../assets/css/khuyenmai.css";
 
+/* ===== Data ===== */
 const CATS = [
   "Tất cả",
   "Chăm sóc da",
@@ -20,7 +21,7 @@ const DEALS = [
     cat: "Chăm sóc da",
     cover:
       "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa0?q=80&w=1200&auto=format&fit=crop",
-    startsAt: addH(0), // đang diễn ra
+    startsAt: addH(0),
     endsAt: addD(3),
     limit: 500,
     used: 210,
@@ -33,7 +34,7 @@ const DEALS = [
     cat: "Dinh dưỡng",
     cover:
       "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop",
-    startsAt: addH(12), // sắp diễn ra
+    startsAt: addH(12),
     endsAt: addD(4),
     limit: 300,
     used: 0,
@@ -46,8 +47,8 @@ const DEALS = [
     cat: "Thiết bị y tế",
     cover:
       "https://images.unsplash.com/photo-1582719478250-02ad91dcf0b9?q=80&w=1200&auto=format&fit=crop",
-    startsAt: addH(-8), // diễn ra
-    endsAt: addH(10), // sắp hết
+    startsAt: addH(-8),
+    endsAt: addH(10),
     limit: 200,
     used: 156,
   },
@@ -59,13 +60,110 @@ const DEALS = [
     cat: "Thuốc không kê đơn",
     cover:
       "https://images.unsplash.com/photo-1582719478250-88497a5a8a7f?q=80&w=1200&auto=format&fit=crop",
-    startsAt: addD(-6), // đã kết thúc
+    startsAt: addD(-6),
     endsAt: addD(-1),
     limit: 400,
     used: 400,
   },
 ];
 
+const BANNERS = [
+  {
+    id: "b1",
+    title: "Mega Sale 11.11",
+    sub: "Giảm đến 49% + Freeship 2h",
+    img: "https://images.unsplash.com/photo-1559070026-74799b5469f1?q=80&w=1600&auto=format&fit=crop",
+    badge: "HOT HÔM NAY",
+    color: "pink",
+  },
+  {
+    id: "b2",
+    title: "Vitamin & Dinh dưỡng",
+    sub: "Mua 2 tặng 1 – Sức khỏe cả nhà",
+    img: "https://images.unsplash.com/photo-1577401132921-cd4396abc845?q=80&w=1600&auto=format&fit=crop",
+    badge: "VITAMIN",
+    color: "mint",
+  },
+  {
+    id: "b3",
+    title: "Thiết bị y tế gia đình",
+    sub: "Ưu đãi nhiệt kế, máy đo huyết áp",
+    img: "https://images.unsplash.com/photo-1582719478312-2d8fdc0e9f9a?q=80&w=1600&auto=format&fit=crop",
+    badge: "FLASH SALE",
+    color: "indigo",
+  },
+];
+
+const PRODUCTS = [
+  {
+    id: "p1",
+    name: "Serum Vitamin C 10%",
+    img: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=1200&auto=format&fit=crop",
+    price: 159000,
+    oldPrice: 259000,
+    discount: 39,
+    rating: 4.7,
+    sold: 320,
+    tag: "Chăm sóc da",
+  },
+  {
+    id: "p2",
+    name: "Vitamin Tổng hợp A–Z (120v)",
+    img: "https://images.unsplash.com/photo-1611175694985-b5bedb53f2fc?q=80&w=1200&auto=format&fit=crop",
+    price: 199000,
+    oldPrice: 329000,
+    discount: 40,
+    rating: 4.8,
+    sold: 812,
+    tag: "Dinh dưỡng",
+  },
+  {
+    id: "p3",
+    name: "Nhiệt kế điện tử",
+    img: "https://images.unsplash.com/photo-1582719478250-02ad91dcf0b9?q=80&w=1200&auto=format&fit=crop",
+    price: 49000,
+    oldPrice: 129000,
+    discount: 62,
+    rating: 4.5,
+    sold: 1060,
+    tag: "Thiết bị y tế",
+  },
+  {
+    id: "p4",
+    name: "Viên kẽm 15mg (60v)",
+    img: "https://images.unsplash.com/photo-1611074875601-7ec2a7f2e0aa?q=80&w=1200&auto=format&fit=crop",
+    price: 89000,
+    oldPrice: 149000,
+    discount: 40,
+    rating: 4.6,
+    sold: 540,
+    tag: "Dinh dưỡng",
+  },
+  {
+    id: "p5",
+    name: "Sữa rửa mặt dịu nhẹ",
+    img: "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=1200&auto=format&fit=crop",
+    price: 119000,
+    oldPrice: 189000,
+    discount: 37,
+    rating: 4.9,
+    sold: 980,
+    tag: "Chăm sóc da",
+  },
+  {
+    id: "p6",
+    name: "Máy đo huyết áp cổ tay",
+    img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop",
+    price: 399000,
+    oldPrice: 590000,
+    discount: 32,
+    rating: 4.4,
+    sold: 265,
+    tag: "Thiết bị y tế",
+  },
+];
+
+/* ===== Helpers ===== */
 function addH(h) {
   const d = new Date();
   d.setHours(d.getHours() + h);
@@ -84,7 +182,6 @@ function leftTime(endISO) {
   const s = Math.floor((diff % 6e4) / 1000);
   return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }
-
 function useTick() {
   const [, setT] = useState(0);
   useEffect(() => {
@@ -93,35 +190,47 @@ function useTick() {
   }, []);
 }
 
+/* ===== Page ===== */
 export default function KhuyenMai() {
-  const [tab, setTab] = useState("dangdienra"); // dangdienra | sapdienra | daketthuc
+  /* filters & states */
+  const [tab, setTab] = useState("dangdienra");
   const [cat, setCat] = useState("Tất cả");
   const [q, setQ] = useState("");
   const [saved, setSaved] = useState(
     () => new Set(JSON.parse(localStorage.getItem("savedDeals") || "[]"))
   );
+  const [slide, setSlide] = useState(0);
 
-  useTick(); // cập nhật countdown mỗi giây
+  useTick();
 
+  /* auto slide banner */
+  useEffect(() => {
+    const id = setInterval(
+      () => setSlide((s) => (s + 1) % BANNERS.length),
+      5000
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  /* filter deals */
   const filtered = useMemo(() => {
     const now = new Date();
-    const byTab = (deal) => {
-      const s = new Date(deal.startsAt),
-        e = new Date(deal.endsAt);
+    const byTab = (d) => {
+      const s = new Date(d.startsAt),
+        e = new Date(d.endsAt);
       if (tab === "dangdienra") return s <= now && e >= now;
       if (tab === "sapdienra") return s > now;
       return e < now;
     };
-    const byCat = (deal) => (cat === "Tất cả" ? true : deal.cat === cat);
-    const byQ = (deal) =>
-      (deal.title + deal.desc).toLowerCase().includes(q.toLowerCase());
+    const byCat = (d) => (cat === "Tất cả" ? true : d.cat === cat);
+    const byQ = (d) =>
+      (d.title + d.desc).toLowerCase().includes(q.toLowerCase());
     return DEALS.filter((d) => byTab(d) && byCat(d) && byQ(d));
   }, [tab, cat, q]);
 
   const saveCode = (code) => {
     const next = new Set(saved);
-    if (next.has(code)) next.delete(code);
-    else next.add(code);
+    next.has(code) ? next.delete(code) : next.add(code);
     setSaved(next);
     localStorage.setItem("savedDeals", JSON.stringify(Array.from(next)));
   };
@@ -129,18 +238,47 @@ export default function KhuyenMai() {
   return (
     <main className="lc promo">
       <PageBar
-        title="Khuyến mãi HOT"
-        subtitle="Mã giảm – Flash sale – Ưu đãi độc quyền online"
+        title="Khuyến mãi • Ưu đãi sốc"
+        subtitle="Banner • Deal • Sản phẩm hot — Ố dề cho đã!"
       />
 
-      {/* HERO */}
+      {/* ===== Mega Banner + Ticker ===== */}
+      <section className="mega-wrap">
+        <div className="mega">
+          {BANNERS.map((b, i) => (
+            <article
+              key={b.id}
+              className={`slide ${i === slide ? "active" : ""}`}
+              style={{ backgroundImage: `url(${b.img})` }}
+            >
+              <span className={`badge ${b.color}`}>{b.badge}</span>
+              <h2>{b.title}</h2>
+              <p>{b.sub}</p>
+              <div className="dots">
+                {BANNERS.map((_x, idx) => (
+                  <button
+                    key={idx}
+                    className={idx === slide ? "on" : ""}
+                    onClick={() => setSlide(idx)}
+                  />
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="ticker">
+          <marquee scrollAmount="8">
+            🔔 <b>Đang diễn ra:</b> Flash Sale 20:00 • Mã <b>SKIN30</b> giảm 30%
+            • Vitamin <b>Mua 2 Tặng 1</b> • Thiết bị y tế <b>đến 49%</b> — Săn
+            nhanh kẻo hết!
+          </marquee>
+        </div>
+      </section>
+
+      {/* ===== Search + Categories ===== */}
       <section className="kv-hero">
         <div className="kv-copy">
-          <h1>Ưu đãi rộn ràng • Săn deal cực đã</h1>
-          <p>
-            Danh mục đa dạng, mã giảm sâu – cập nhật mỗi ngày. Lưu mã để dùng ở
-            bước thanh toán.
-          </p>
           <div className="kv-search">
             <i className="ri-search-line"></i>
             <input
@@ -177,7 +315,7 @@ export default function KhuyenMai() {
         </div>
       </section>
 
-      {/* TABS */}
+      {/* ===== Tabs ===== */}
       <div className="kv-tabs">
         <button
           className={tab === "dangdienra" ? "active" : ""}
@@ -199,7 +337,7 @@ export default function KhuyenMai() {
         </button>
       </div>
 
-      {/* GRID DEALS */}
+      {/* ===== Deals grid (như cũ) ===== */}
       <section className="deal-grid">
         {filtered.length === 0 ? (
           <div className="empty">
@@ -210,7 +348,7 @@ export default function KhuyenMai() {
             const pct = Math.min(100, Math.round((d.used / d.limit) * 100));
             const timeLeft = leftTime(d.endsAt);
             const ended = new Date(d.endsAt) < new Date();
-            const soon = !ended && new Date(d.endsAt) - new Date() < 36e5; // < 1h
+            const soon = !ended && new Date(d.endsAt) - new Date() < 36e5;
             return (
               <article
                 className={`deal-card ${ended ? "is-ended" : ""}`}
@@ -230,11 +368,9 @@ export default function KhuyenMai() {
                     </span>
                   )}
                 </div>
-
                 <div className="body">
                   <h3>{d.title}</h3>
                   <p className="desc">{d.desc}</p>
-
                   <div className="meta">
                     <div className="progress">
                       <i className="ri-fire-fill"></i>
@@ -249,7 +385,6 @@ export default function KhuyenMai() {
                       <small>còn lại</small>
                     </div>
                   </div>
-
                   <div className="coupon">
                     <code>{d.code}</code>
                     <button
@@ -274,7 +409,56 @@ export default function KhuyenMai() {
         )}
       </section>
 
-      {/* LƯU Ý */}
+      {/* ===== Sản phẩm hot (Ố dề) ===== */}
+      <section className="hot-head">
+        <h2>Sản phẩm HOT</h2>
+        <p>Giảm sâu – bán chạy – xem là muốn chốt!</p>
+      </section>
+      <section className="prod-grid">
+        {PRODUCTS.map((p) => (
+          <article className="prod-card" key={p.id}>
+            <div className="thumb" style={{ backgroundImage: `url(${p.img})` }}>
+              <span className="off">-{p.discount}%</span>
+              <span className="tag">{p.tag}</span>
+            </div>
+            <div className="p-body">
+              <h3>{p.name}</h3>
+              <div className="price">
+                <b>{formatVND(p.price)}</b>
+                <s>{formatVND(p.oldPrice)}</s>
+              </div>
+              <div className="meta">
+                <span className="rate">
+                  <i className="ri-star-fill" /> {p.rating.toFixed(1)}
+                </span>
+                <span className="sold">
+                  Đã bán {p.sold.toLocaleString("vi-VN")}
+                </span>
+              </div>
+              <div className="p-progress">
+                <span
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.round((p.sold / 1200) * 100)
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="actions">
+                <button className="btn-buy">
+                  <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
+                </button>
+                <button className="btn-ghost">
+                  <i className="ri-eye-line" /> Xem nhanh
+                </button>
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {/* ===== Note ===== */}
       <section className="promo-note">
         <details>
           <summary>
@@ -289,4 +473,9 @@ export default function KhuyenMai() {
       </section>
     </main>
   );
+}
+
+/* ===== Utils ===== */
+function formatVND(n) {
+  return n.toLocaleString("vi-VN") + "đ";
 }
