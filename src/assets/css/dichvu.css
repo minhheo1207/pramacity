@@ -1,0 +1,855 @@
+/* ===== khung chung ===== */
+.services .container {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.services h2 {
+  color: #fff;
+  margin: 6px 0 14px;
+}
+.services .btn {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+.services .btn.btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #eaf1ff;
+}
+.services .btn:hover {
+  transform: translateY(-1px);
+}
+
+/* ===== hero ===== */
+.sv-hero {
+  margin-top: 6px;
+  background: radial-gradient(
+      1000px 320px at -10% -30%,
+      rgba(0, 229, 255, 0.28),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 300px at 110% 130%,
+      rgba(0, 168, 89, 0.32),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #0b2b66 0%, #082a63 100%);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.sv-hero .container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+  padding: 22px;
+}
+.hero-copy h1 {
+  font-size: 30px;
+  color: #fff;
+  margin: 0;
+}
+.hero-copy h1 span {
+  color: #47f0c5;
+}
+.hero-copy p {
+  color: #cfe0ff;
+  margin: 10px 0 14px;
+}
+.hero-cta {
+  display: flex;
+  gap: 10px;
+}
+.hero-cards {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.mini-card {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.mini-card i {
+  font-size: 22px;
+  color: #47f0c5;
+}
+.mini-card h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+}
+.mini-card p {
+  margin: 2px 0 0;
+  color: #cfe0ff;
+  font-size: 12px;
+}
+.mini-card .price {
+  color: #fff;
+  font-weight: 800;
+}
+
+/* ===== danh sách dịch vụ ===== */
+.sv-list {
+  margin-top: 22px;
+}
+.sv-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.arrows {
+  display: flex;
+  gap: 8px;
+}
+.arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+}
+.sv-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 8px;
+}
+.sv-grid > * {
+  scroll-snap-align: start;
+}
+
+.sv-card {
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.02)
+    ),
+    radial-gradient(
+      1200px 400px at -20% -40%,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.35s ease;
+  min-height: 280px;
+}
+.sv-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.sv-card__media {
+  position: relative;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+      600px 200px at 20% -40%,
+      rgba(0, 229, 255, 0.22),
+      transparent 60%
+    ),
+    radial-gradient(
+      600px 200px at 120% 140%,
+      rgba(0, 168, 89, 0.28),
+      transparent 60%
+    ),
+    #0b2b66;
+}
+.sv-card__media i {
+  font-size: 42px;
+  color: #eafcff;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
+}
+.sv-card__media .badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  background: linear-gradient(90deg, #008c5a, #27d39a);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.sv-card__body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #eaf1ff;
+}
+.sv-title {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+}
+.sv-desc {
+  margin: 0;
+  color: #cfe0ff;
+}
+.sv-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cfe0ff;
+}
+.sv-meta .chip {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.sv-meta .dot {
+  opacity: 0.6;
+}
+.sv-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== steps ===== */
+.sv-steps {
+  margin-top: 26px;
+}
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px dashed rgba(255, 255, 255, 0.18);
+  padding-left: 14px;
+}
+.steps li {
+  position: relative;
+  padding-left: 12px;
+  margin: 10px 0 14px;
+}
+.steps .dot {
+  position: absolute;
+  left: -7px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #47f0c5;
+  box-shadow: 0 0 0 4px rgba(71, 240, 197, 0.15);
+}
+.steps h4 {
+  margin: 0 0 4px;
+  color: #fff;
+}
+.steps p {
+  margin: 0;
+  color: #cfe0ff;
+}
+
+/* ===== pricing ===== */
+.sv-pricing {
+  margin-top: 28px;
+}
+.price-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.price-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(8px);
+}
+.pc-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+.pc-top i {
+  font-size: 22px;
+  color: #47f0c5;
+}
+.pc-mid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pc-mid .tag {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #eaf1ff;
+}
+.pc-mid .money {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+.btn.block {
+  width: 100%;
+}
+
+/* ===== faq ===== */
+.sv-faq {
+  margin-top: 22px;
+}
+.sv-faq details {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: #eaf1ff;
+  margin-bottom: 10px;
+}
+.sv-faq summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sv-faq p {
+  color: #cfe0ff;
+  margin: 8px 0 0;
+}
+
+/* ===== CTA ===== */
+.sv-cta {
+  margin: 28px 0 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 140, 90, 0.25),
+    rgba(0, 229, 255, 0.18)
+  );
+}
+.cta-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+.cta-copy h3 {
+  margin: 0;
+  color: #fff;
+}
+.cta-copy p {
+  margin: 4px 0 0;
+  color: #cfe0ff;
+}
+.btn.btn-big {
+  height: 46px;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+/* ===== toast (dùng chung) ===== */
+.toast-wrap {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  gap: 8px;
+  z-index: 9999;
+}
+.toast-item {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  transform: translateY(8px);
+  opacity: 0;
+  transition: 0.25s;
+}
+.toast-item.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ===== responsive ===== */
+@media (max-width: 980px) {
+  .sv-hero .container {
+    grid-template-columns: 1fr;
+  }
+  .hero-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sv-grid {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(280px, 1fr);
+  }
+}
+/* ===== CHỮ RÕ HƠN & TƯƠNG PHẢN ===== */
+.services h2,
+.services h3,
+.services h4 {
+  color: #fff !important;
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.25);
+}
+
+/* Quy trình */
+.sv-steps h2 {
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  color: #47f0c5;
+  text-shadow: 0 0 10px rgba(71, 240, 197, 0.4);
+}
+
+.steps {
+  border-left: 3px dashed rgba(71, 240, 197, 0.5);
+  padding-left: 18px;
+}
+.steps li {
+  margin: 18px 0;
+  color: #eafcff;
+}
+.steps .dot {
+  background: linear-gradient(145deg, #47f0c5, #00b5a0);
+  box-shadow: 0 0 12px rgba(71, 240, 197, 0.6);
+}
+.steps h4 {
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+.steps p {
+  color: #d6eeff;
+  font-size: 14px;
+}
+
+/* Bảng giá */
+.sv-pricing h2 {
+  color: #47f0c5;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.3);
+  margin-bottom: 16px;
+}
+
+.price-card {
+  color: #fff;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 32, 96, 0.85),
+    rgba(0, 22, 72, 0.85)
+  );
+  border: 1px solid rgba(71, 240, 197, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.price-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 40px rgba(0, 255, 200, 0.35);
+}
+.pc-top i {
+  color: #47f0c5;
+  filter: drop-shadow(0 0 8px rgba(71, 240, 197, 0.4));
+}
+.pc-top h3 {
+  color: #fff;
+  font-weight: 700;
+}
+.pc-mid .money {
+  color: #47f0c5;
+  font-weight: 900;
+  font-size: 18px;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.5);
+}
+
+/* FAQ rõ ràng hơn */
+.sv-faq details {
+  background: rgba(0, 32, 96, 0.6);
+  border: 1px solid rgba(71, 240, 197, 0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  color: #eafcff;
+}
+.sv-faq summary {
+  color: #47f0c5;
+  font-weight: 700;
+}
+.sv-faq p {
+  color: #cfe0ff;
+}
+
+/* CTA cuối trang sáng hơn */
+.sv-cta {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 168, 89, 0.6),
+    rgba(0, 229, 255, 0.4)
+  );
+}
+.cta-copy h3 {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(0, 255, 200, 0.3);
+}
+.cta-copy p {
+  color: #eafcff;
+}
+/* ===== FIX ĐỘ TƯƠNG PHẢN CHO DỊCH VỤ ===== */
+
+/* Body thẻ dịch vụ: luôn rõ, không bị mờ */
+.sv-card,
+.sv-card__body,
+.sv-card__body * {
+  opacity: 1 !important;
+}
+
+.sv-card__body {
+  /* nền tối nhẹ cho phần nội dung của thẻ */
+  background: linear-gradient(
+    180deg,
+    rgba(8, 42, 99, 0.92),
+    rgba(7, 28, 72, 0.92)
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sv-card__body .sv-title {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+.sv-card__body .sv-desc {
+  color: #eaf1ff !important;
+}
+.sv-card__body .sv-meta,
+.sv-card__body .sv-meta .muted {
+  color: #d6eeff !important;
+}
+.sv-card__body .chip.chip--soft {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #eafcff !important;
+}
+
+/* ===== Quy trình thực hiện: nền tối + chữ rõ ===== */
+.sv-steps {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 42, 99, 0.45),
+    rgba(7, 28, 72, 0.45)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+}
+.sv-steps h2 {
+  color: #47f0c5 !important;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.35);
+}
+.steps {
+  border-left: 3px dashed rgba(71, 240, 197, 0.55);
+  padding-left: 18px;
+}
+.steps li {
+  color: #eafcff !important;
+}
+.steps h4 {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+.steps p {
+  color: #d6eeff !important;
+}
+
+/* ===== Bảng giá nhanh: nền tối + giá sáng ===== */
+.sv-pricing {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 42, 99, 0.35),
+    rgba(7, 28, 72, 0.35)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.979);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 22px;
+}
+.sv-pricing h2 {
+  color: #47f0c5 !important;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.3);
+}
+.price-card {
+  color: #fff;
+}
+.price-card .pc-top h3 {
+  color: #fff !important;
+  font-weight: 800;
+}
+.price-card .pc-mid .tag {
+  color: #eafcff !important;
+}
+.price-card .pc-mid .money {
+  color: #47f0c5 !important;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.45);
+}
+
+/* CTA/FAQ chữ rõ */
+.sv-faq details {
+  color: #eafcff !important;
+}
+.sv-faq summary {
+  color: #47f0c5 !important;
+}
+.sv-faq p {
+  color: #d6eeff !important;
+}
+/* ===== BỎ NỀN XÁM, LÀM SÁNG & TRONG SUỐT ===== */
+
+/* Quy trình thực hiện */
+.sv-steps {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 10px 0 !important;
+}
+.sv-steps h2 {
+  color: #47f0c5 !important;
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 10px rgba(71, 240, 197, 0.35);
+}
+.steps {
+  border-left: 3px dashed rgba(71, 240, 197, 0.55);
+  padding-left: 18px;
+}
+.steps li {
+  background: transparent;
+  color: #eafcff !important;
+}
+.steps h4 {
+  color: #fff !important;
+  font-weight: 800;
+}
+.steps p {
+  color: #d6eeff !important;
+}
+
+/* Bảng giá nhanh */
+.sv-pricing {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.sv-pricing h2 {
+  color: #47f0c5 !important;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.3);
+  margin-bottom: 16px;
+}
+.price-card {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 60, 140, 0.95),
+    rgba(5, 25, 80, 0.95)
+  ) !important;
+  border: 1px solid rgba(71, 240, 197, 0.15) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  color: #fff !important;
+}
+.price-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 40px rgba(0, 255, 200, 0.35);
+}
+.price-card .pc-top h3 {
+  color: #fff !important;
+}
+.price-card .pc-mid .money {
+  color: #47f0c5 !important;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(71, 240, 197, 0.45);
+}
+
+/* FAQ và CTA */
+.sv-faq details {
+  background: rgba(0, 32, 96, 0.5);
+  border: 1px solid rgba(71, 240, 197, 0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.sv-faq summary {
+  color: #47f0c5 !important;
+}
+.sv-cta {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 168, 89, 0.5),
+    rgba(0, 229, 255, 0.35)
+  ) !important;
+}
+/* ===== FIX CHỮ MỜ Ở QUY TRÌNH THỰC HIỆN ===== */
+.sv-steps {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 12px 0 !important;
+}
+
+.sv-steps h2 {
+  color: #10e7a2 !important;
+  font-weight: 900;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(0, 255, 200, 0.5);
+  margin-bottom: 10px;
+}
+
+.steps {
+  border-left: 3px solid rgba(16, 231, 162, 0.7);
+  padding-left: 20px;
+}
+
+.steps li {
+  margin: 18px 0;
+}
+
+.steps h4 {
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 16px;
+  text-shadow: 0 0 6px rgba(0, 255, 200, 0.4);
+}
+
+.steps p {
+  color: #e9f9ff !important;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Dot sáng rõ */
+.steps .dot {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(145deg, #00ffc6, #0099ff);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  margin-right: 8px;
+}
+
+/* Hover phát sáng */
+.steps li:hover h4 {
+  color: #10e7a2 !important;
+  text-shadow: 0 0 10px rgba(0, 255, 200, 0.8);
+  transform: translateX(2px);
+  transition: all 0.25s ease;
+}
+.steps li:hover p {
+  color: #ffffff !important;
+}
+/* ==== QUY TRÌNH THỰC HIỆN: bản dễ đọc, tương phản cao ==== */
+/* bỏ mọi hiệu ứng mờ, neon, shadow */
+.sv-steps {
+  background: transparent !important;
+  padding: 12px 0 !important;
+}
+.sv-steps * {
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* tiêu đề khu vực */
+.sv-steps h2 {
+  color: #0b2b66 !important; /* xanh đậm */
+  font-weight: 900;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  margin-bottom: 10px;
+}
+
+/* cột timeline và chấm tròn */
+.steps {
+  border-left: 3px solid #0b2b66 !important;
+  padding-left: 16px;
+}
+.steps .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0b2b66 !important;
+  box-shadow: none !important;
+}
+
+/* tiêu đề từng bước + mô tả: CHỮ ĐẬM, MÀU ĐẬM */
+.steps h4 {
+  color: #0b2b66 !important; /* đậm để nổi trên nền sáng */
+  font-weight: 800;
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.steps p {
+  color: #2b3b6f !important; /* xám xanh, tương phản cao */
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* hover chỉ đổi nhẹ màu, không glow */
+.steps li:hover h4 {
+  color: #092355 !important;
+}
+.steps li:hover p {
+  color: #1e3268 !important;
+}
+
+/* ==== BẢNG GIÁ NHANH: giữ card rõ, tiêu đề đậm ==== */
+.sv-pricing {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.sv-pricing h2 {
+  color: #0b2b66 !important;
+  font-weight: 900;
+  margin: 14px 0;
+}
+
+.price-card {
+  background: #0b2b66 !important; /* nền xanh đậm dễ đọc */
+  border: 1px solid #163b8c !important;
+  color: #ffffff !important;
+}
+.price-card .pc-top h3 {
+  color: #ffffff !important;
+  font-weight: 800;
+}
+.price-card .pc-mid .tag {
+  color: #e9f2ff !important;
+  background: rgba(255, 255, 255, 0.12);
+}
+.price-card .pc-mid .money {
+  color: #ffffff !important;
+  font-weight: 900;
+}

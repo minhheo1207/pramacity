@@ -264,3 +264,137 @@
     overflow-x: auto;
   }
 }
+/* ===== Hover zoom ảnh cover ===== */
+.pd-gallery .pd-cover picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.pd-gallery .pd-cover .cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: translateZ(0);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.25s;
+}
+.pd-gallery .pd-cover:hover .cover-img {
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* ===== Skeleton ===== */
+.sk {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.sk-cover {
+  width: 100%;
+  height: 360px;
+}
+.sk-line {
+  height: 16px;
+  margin-bottom: 10px;
+}
+.sk-line.w-60 {
+  width: 60%;
+}
+.sk-price {
+  height: 28px;
+  width: 180px;
+  margin: 10px 0;
+}
+.sk-qty {
+  height: 36px;
+  width: 120px;
+  border-radius: 999px;
+}
+.sk-btns {
+  height: 40px;
+  width: 260px;
+  border-radius: 12px;
+  margin: 10px 0;
+}
+.sk-bullets {
+  height: 68px;
+}
+
+/* ===== Related: slider ngang + arrows ===== */
+.rel-arrows {
+  position: relative;
+  height: 0;
+}
+.rel-arrows .arrow {
+  position: absolute;
+  top: -42px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
+}
+.rel-arrows .prev {
+  right: 52px;
+}
+.rel-arrows .next {
+  right: 10px;
+}
+.rel-arrows .arrow:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.rel-slider {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 6px;
+}
+.rel-slider > * {
+  scroll-snap-align: start;
+}
+.rel-slider::-webkit-scrollbar {
+  height: 8px;
+}
+.rel-slider::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+.rel-slider::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+/* ===== Toast (dùng chung) ===== */
+.toast-wrap {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  display: grid;
+  gap: 8px;
+  z-index: 9999;
+}
+.toast-item {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  transform: translateY(8px);
+  opacity: 0;
+  transition: 0.25s;
+}
+.toast-item.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Responsive tweak */
+@media (max-width: 1024px) {
+  .rel-slider {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+  }
+}

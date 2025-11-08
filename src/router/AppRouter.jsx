@@ -14,6 +14,8 @@ import KhuyenMai from "../pages/KhuyenMai";
 import ProductDetail from "../pages/ProductDetail";
 import BaiVietDetail from "../pages/BaiVietDetail";
 import NewProductDetail from "../pages/NewProductDetail";
+import DatLich from "../pages/DatLich";
+import Booking from "../pages/Booking";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -37,6 +39,8 @@ export default function AppRouter() {
           <Route path="/san-pham/:id" element={<ProductDetail />} />
           <Route path="/bai-viet/:id" element={<BaiVietDetail />} />
           <Route path="/hang-moi/:id" element={<NewProductDetail />} />
+          <Route path="/dat-lich" element={<DatLich />} />
+          <Route path="/dat-lich" element={<Booking />} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

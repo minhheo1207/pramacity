@@ -1,6 +1,6 @@
 // src/pages/NewProductDetail.jsx
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PageBar from "../components/PageBar";
 import Frame from "../components/Frame";
 import { getNewProductById, getRelatedNewProducts } from "../data/newProducts";
@@ -8,16 +8,59 @@ import { addToCart } from "../services/products";
 import "../assets/css/new-product-detail.css";
 
 const withBase = (p) =>
-  `${import.meta.env.BASE_URL}${p.startsWith("/") ? p.slice(1) : p}`;
+  `${import.meta.env.BASE_URL}${p?.startsWith("/") ? p.slice(1) : p}`;
+
+// mini toast gọn nhẹ
+function toast(msg) {
+  let wrap = document.querySelector(".toast-wrap");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.className = "toast-wrap";
+    document.body.appendChild(wrap);
+  }
+  const t = document.createElement("div");
+  t.className = "toast-item";
+  t.textContent = msg;
+  wrap.appendChild(t);
+  requestAnimationFrame(() => t.classList.add("show"));
+  setTimeout(() => {
+    t.classList.remove("show");
+    setTimeout(() => t.remove(), 300);
+  }, 2200);
+}
 
 export default function NewProductDetail() {
   const { id } = useParams();
   const nav = useNavigate();
+  const location = useLocation();
+
   const product = useMemo(() => getNewProductById(id), [id]);
   const [qty, setQty] = useState(1);
-  const [tab, setTab] = useState("desc");
 
-  useEffect(() => window.scrollTo(0, 0), [id]);
+  // ===== Skeleton khi đổi sản phẩm =====
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 250); // 250ms
+    window.scrollTo(0, 0);
+    return () => clearTimeout(t);
+  }, [id]);
+
+  // ===== Tabs dính URL hash =====
+  const hashToTab = (h) => (h || "").replace("#", "") || "desc"; // default desc
+  const [tab, setTab] = useState(hashToTab(location.hash));
+
+  // đồng bộ khi back/forward
+  useEffect(() => {
+    setTab(hashToTab(location.hash));
+  }, [location.hash]);
+
+  const switchTab = (key) => {
+    setTab(key);
+    // update hash nhưng không scroll jump
+    const url = `${location.pathname}#${key}`;
+    window.history.replaceState(null, "", url);
+  };
 
   if (!product) {
     return (
@@ -38,7 +81,13 @@ export default function NewProductDetail() {
   const fmt = (n) => n.toLocaleString("vi-VN") + "đ";
   const stars = (r) =>
     "★".repeat(Math.round(r)) + "☆".repeat(5 - Math.round(r));
+
   const related = getRelatedNewProducts(product, 8);
+
+  // ===== Slider liên quan =====
+  const sliderRef = useRef(null);
+  const slideBy = (dx) =>
+    sliderRef.current?.scrollBy({ left: dx, behavior: "smooth" });
 
   return (
     <main className="lc np-detail">
@@ -53,25 +102,31 @@ export default function NewProductDetail() {
       />
 
       <div className="container pd-wrap">
-        {/* Gallery */}
+        {/* ====== MAIN ====== */}
         <section className="pd-main">
+          {/* Gallery */}
           <div className="pd-gallery">
             <div className="pd-cover">
-              <picture>
-                <source
-                  srcSet={withBase(
-                    product.img.replace(/\.(png|jpg|jpeg)$/i, ".webp")
-                  )}
-                  type="image/webp"
-                />
-                <img
-                  src={withBase(product.img)}
-                  alt={product.name}
-                  onError={(e) => {
-                    e.currentTarget.src = "/img/placeholder.jpg";
-                  }}
-                />
-              </picture>
+              {loading ? (
+                <div className="sk sk-cover" />
+              ) : (
+                <picture>
+                  <source
+                    srcSet={withBase(
+                      product.img.replace(/\.(png|jpg|jpeg)$/i, ".webp")
+                    )}
+                    type="image/webp"
+                  />
+                  <img
+                    src={withBase(product.img)}
+                    alt={product.name}
+                    className="cover-img"
+                    onError={(e) =>
+                      (e.currentTarget.src = "/img/placeholder.jpg")
+                    }
+                  />
+                </picture>
+              )}
               {product.sale && (
                 <span className="badge-sale">{product.sale}</span>
               )}
@@ -80,87 +135,104 @@ export default function NewProductDetail() {
 
           {/* Info */}
           <div className="pd-info">
-            <div className="pd-meta">
-              <span className="stars">{stars(product.rating)}</span>
-              <span className="dot">•</span>
-              <span>{product.sold.toLocaleString()} đã bán</span>
-              <span className="dot">•</span>
-              <span className="pill">{product.brand}</span>
-              <span className="pill">{product.cat}</span>
-            </div>
+            {loading ? (
+              <>
+                <div className="sk sk-line" />
+                <div className="sk sk-line w-60" />
+                <div className="sk sk-price" />
+                <div className="sk sk-qty" />
+                <div className="sk sk-btns" />
+                <div className="sk sk-bullets" />
+              </>
+            ) : (
+              <>
+                <div className="pd-meta">
+                  <span className="stars">{stars(product.rating)}</span>
+                  <span className="dot">•</span>
+                  <span>{product.sold.toLocaleString()} đã bán</span>
+                  <span className="dot">•</span>
+                  <span className="pill">{product.brand}</span>
+                  <span className="pill">{product.cat}</span>
+                </div>
 
-            <div className="pd-price">
-              {product.old && (
-                <span className="price--old">{fmt(product.old)}</span>
-              )}
-              <span className="price">{fmt(product.price)}</span>
-            </div>
+                <div className="pd-price">
+                  {product.old && (
+                    <span className="price--old">{fmt(product.old)}</span>
+                  )}
+                  <span className="price">{fmt(product.price)}</span>
+                </div>
 
-            <div className="pd-qty">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                –
-              </button>
-              <input
-                type="number"
-                value={qty}
-                min={1}
-                onChange={(e) =>
-                  setQty(Math.max(1, Number(e.target.value || 1)))
-                }
-              />
-              <button onClick={() => setQty((q) => q + 1)}>+</button>
-            </div>
+                <div className="pd-qty">
+                  <button onClick={() => setQty((q) => Math.max(1, q - 1))}>
+                    –
+                  </button>
+                  <input
+                    type="number"
+                    value={qty}
+                    min={1}
+                    onChange={(e) =>
+                      setQty(Math.max(1, Number(e.target.value || 1)))
+                    }
+                  />
+                  <button onClick={() => setQty((q) => q + 1)}>+</button>
+                </div>
 
-            <div className="pd-actions">
-              <button className="btn" onClick={() => addToCart(product, qty)}>
-                Thêm vào giỏ
-              </button>
-              <button
-                className="btn btn--ghost"
-                onClick={() => {
-                  addToCart(product, qty);
-                  nav("/cart");
-                }}
-              >
-                Mua ngay
-              </button>
-            </div>
+                <div className="pd-actions">
+                  <button
+                    className="btn"
+                    onClick={() => addToCart(product, qty)}
+                  >
+                    Thêm vào giỏ
+                  </button>
+                  <button
+                    className="btn btn--ghost"
+                    onClick={() => {
+                      addToCart(product, qty);
+                      toast("Đã thêm vào giỏ. Chuyển đến giỏ hàng…");
+                      nav("/cart");
+                    }}
+                  >
+                    Mua ngay
+                  </button>
+                </div>
 
-            <ul className="pd-bullets">
-              <li>
-                <i className="ri-shield-check-line"></i> Hàng chính hãng, đổi
-                trả 7 ngày
-              </li>
-              <li>
-                <i className="ri-truck-line"></i> Giao nhanh trong 2 giờ nội
-                thành
-              </li>
-              <li>
-                <i className="ri-customer-service-2-line"></i> Tư vấn dược sĩ
-                24/7
-              </li>
-            </ul>
+                <ul className="pd-bullets">
+                  <li>
+                    <i className="ri-shield-check-line"></i> Hàng chính hãng,
+                    đổi trả 7 ngày
+                  </li>
+                  <li>
+                    <i className="ri-truck-line"></i> Giao nhanh trong 2 giờ nội
+                    thành
+                  </li>
+                  <li>
+                    <i className="ri-customer-service-2-line"></i> Tư vấn dược
+                    sĩ 24/7
+                  </li>
+                </ul>
+              </>
+            )}
           </div>
         </section>
 
-        {/* Tabs */}
+        {/* ====== TABS ====== */}
         <section className="pd-tabs">
           <nav className="tabs">
             <button
               className={tab === "desc" ? "active" : ""}
-              onClick={() => setTab("desc")}
+              onClick={() => switchTab("desc")}
             >
               Mô tả
             </button>
             <button
               className={tab === "spec" ? "active" : ""}
-              onClick={() => setTab("spec")}
+              onClick={() => switchTab("spec")}
             >
               Thành phần & thông tin
             </button>
             <button
               className={tab === "review" ? "active" : ""}
-              onClick={() => setTab("review")}
+              onClick={() => switchTab("review")}
             >
               Đánh giá (demo)
             </button>
@@ -200,11 +272,20 @@ export default function NewProductDetail() {
           </div>
         </section>
 
-        {/* Related */}
+        {/* ====== RELATED ====== */}
         {related.length > 0 && (
           <section className="pd-related">
             <Frame title="Sản phẩm liên quan">
-              <div className="grid grid--product">
+              <div className="rel-arrows">
+                <button className="arrow prev" onClick={() => slideBy(-280)}>
+                  <i className="ri-arrow-left-s-line" />
+                </button>
+                <button className="arrow next" onClick={() => slideBy(280)}>
+                  <i className="ri-arrow-right-s-line" />
+                </button>
+              </div>
+
+              <div className="rel-slider" ref={sliderRef}>
                 {related.map((p) => (
                   <article className="card product" key={p.id}>
                     <div className="card__media">
