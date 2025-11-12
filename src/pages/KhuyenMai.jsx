@@ -1,7 +1,7 @@
-// src/pages/KhuyenMai.jsx
 import { useEffect, useMemo, useState } from "react";
 import PageBar from "../components/PageBar";
 import "../assets/css/khuyenmai.css";
+import QuickViewModal from "../components/QuickViewModal";
 
 /* ===== Data ===== */
 const CATS = [
@@ -19,8 +19,7 @@ const DEALS = [
     desc: "Áp dụng cho sữa rửa mặt, kem dưỡng, serum. Tối đa 100k.",
     code: "SKIN30",
     cat: "Chăm sóc da",
-    cover:
-      "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa0?q=80&w=1200&auto=format&fit=crop",
+    cover: "/khuyenmai/chamsoda.png",
     startsAt: addH(0),
     endsAt: addD(3),
     limit: 500,
@@ -32,8 +31,7 @@ const DEALS = [
     desc: "Áp dụng size 60v & 120v. Tối đa 2 combo/khách.",
     code: "VITA21",
     cat: "Dinh dưỡng",
-    cover:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop",
+    cover: "/khuyenmai/VitaminC.png",
     startsAt: addH(12),
     endsAt: addD(4),
     limit: 300,
@@ -45,8 +43,7 @@ const DEALS = [
     desc: "Số lượng có hạn, mỗi khách tối đa 1 sản phẩm.",
     code: "THERMO49",
     cat: "Thiết bị y tế",
-    cover:
-      "https://images.unsplash.com/photo-1582719478250-02ad91dcf0b9?q=80&w=1200&auto=format&fit=crop",
+    cover: "/khuyenmai/nhietketdientu.png",
     startsAt: addH(-8),
     endsAt: addH(10),
     limit: 200,
@@ -58,12 +55,35 @@ const DEALS = [
     desc: "Không áp dụng cho thuốc kê đơn. Tối đa 50k.",
     code: "OTC20",
     cat: "Thuốc không kê đơn",
-    cover:
-      "https://images.unsplash.com/photo-1582719478250-88497a5a8a7f?q=80&w=1200&auto=format&fit=crop",
+    cover: "/khuyenmai/panadol.png",
     startsAt: addD(-6),
     endsAt: addD(-1),
     limit: 400,
     used: 400,
+  },
+  {
+    id: "d5",
+    title: "Deal Hot – Máy đo huyết áp giảm 35%",
+    desc: "Giá chỉ 385k, số lượng có hạn, Freeship toàn quốc.",
+    code: "BP35",
+    cat: "Thiết bị y tế",
+    cover: "/khuyenmai/maydohuyetam.png",
+    startsAt: addH(-3),
+    endsAt: addH(18),
+    limit: 250,
+    used: 112,
+  },
+  {
+    id: "d6",
+    title: "Ưu đãi 40% – Dầu gội dược liệu thảo mộc",
+    desc: "Chăm sóc tóc khỏe mạnh, hương thơm tự nhiên.",
+    code: "HAIR40",
+    cat: "Chăm sóc da",
+    cover: "/khuyenmai/daugoi.png",
+    startsAt: addH(-5),
+    endsAt: addH(12),
+    limit: 350,
+    used: 146,
   },
 ];
 
@@ -72,7 +92,8 @@ const BANNERS = [
     id: "b1",
     title: "Mega Sale 11.11",
     sub: "Giảm đến 49% + Freeship 2h",
-    img: "https://images.unsplash.com/photo-1559070026-74799b5469f1?q=80&w=1600&auto=format&fit=crop",
+    img: "/khuyenmai/Mega-Sale.png",
+    icon: "/khuyenmai/VitaminC.png",
     badge: "HOT HÔM NAY",
     color: "pink",
   },
@@ -80,7 +101,8 @@ const BANNERS = [
     id: "b2",
     title: "Vitamin & Dinh dưỡng",
     sub: "Mua 2 tặng 1 – Sức khỏe cả nhà",
-    img: "https://images.unsplash.com/photo-1577401132921-cd4396abc845?q=80&w=1600&auto=format&fit=crop",
+    img: "/khuyenmai/VitaminC.png",
+    icon: "/khuyenmai/VitaminC.png",
     badge: "VITAMIN",
     color: "mint",
   },
@@ -88,7 +110,8 @@ const BANNERS = [
     id: "b3",
     title: "Thiết bị y tế gia đình",
     sub: "Ưu đãi nhiệt kế, máy đo huyết áp",
-    img: "https://images.unsplash.com/photo-1582719478312-2d8fdc0e9f9a?q=80&w=1600&auto=format&fit=crop",
+    img: "/khuyenmai/banner-ThietBiYTe.png",
+    icon: "/khuyenmai/banner-ThietBiYTe.png",
     badge: "FLASH SALE",
     color: "indigo",
   },
@@ -98,7 +121,7 @@ const PRODUCTS = [
   {
     id: "p1",
     name: "Serum Vitamin C 10%",
-    img: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=1200&auto=format&fit=crop",
+    cover: "/khuyenmai/serumC.png",
     price: 159000,
     oldPrice: 259000,
     discount: 39,
@@ -109,7 +132,7 @@ const PRODUCTS = [
   {
     id: "p2",
     name: "Vitamin Tổng hợp A–Z (120v)",
-    img: "https://images.unsplash.com/photo-1611175694985-b5bedb53f2fc?q=80&w=1200&auto=format&fit=crop",
+    img: "/khuyenmai/vitaminA-Z.png",
     price: 199000,
     oldPrice: 329000,
     discount: 40,
@@ -120,7 +143,7 @@ const PRODUCTS = [
   {
     id: "p3",
     name: "Nhiệt kế điện tử",
-    img: "https://images.unsplash.com/photo-1582719478250-02ad91dcf0b9?q=80&w=1200&auto=format&fit=crop",
+    img: "/khuyenmai/nhietketdientu.png",
     price: 49000,
     oldPrice: 129000,
     discount: 62,
@@ -131,7 +154,7 @@ const PRODUCTS = [
   {
     id: "p4",
     name: "Viên kẽm 15mg (60v)",
-    img: "https://images.unsplash.com/photo-1611074875601-7ec2a7f2e0aa?q=80&w=1200&auto=format&fit=crop",
+    img: "/khuyenmai/kem.png",
     price: 89000,
     oldPrice: 149000,
     discount: 40,
@@ -142,7 +165,7 @@ const PRODUCTS = [
   {
     id: "p5",
     name: "Sữa rửa mặt dịu nhẹ",
-    img: "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=1200&auto=format&fit=crop",
+    img: "/khuyenmai/suaruamat.png",
     price: 119000,
     oldPrice: 189000,
     discount: 37,
@@ -153,7 +176,7 @@ const PRODUCTS = [
   {
     id: "p6",
     name: "Máy đo huyết áp cổ tay",
-    img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=1200&auto=format&fit=crop",
+    img: "/khuyenmai/maydohuyetapcotay.png",
     price: 399000,
     oldPrice: 590000,
     discount: 32,
@@ -177,22 +200,17 @@ function addD(dy) {
 function leftTime(endISO) {
   const diff = new Date(endISO) - new Date();
   if (diff <= 0) return "00:00:00";
-  const h = Math.floor(diff / 36e5);
-  const m = Math.floor((diff % 36e5) / 6e4);
-  const s = Math.floor((diff % 6e4) / 1000);
+  const h = Math.floor(diff / 36e5),
+    m = Math.floor((diff % 36e5) / 6e4),
+    s = Math.floor((diff % 6e4) / 1000);
   return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }
-function useTick() {
-  const [, setT] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setT(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+function formatVND(n) {
+  return n.toLocaleString("vi-VN") + "đ";
 }
 
 /* ===== Page ===== */
 export default function KhuyenMai() {
-  /* filters & states */
   const [tab, setTab] = useState("dangdienra");
   const [cat, setCat] = useState("Tất cả");
   const [q, setQ] = useState("");
@@ -200,10 +218,9 @@ export default function KhuyenMai() {
     () => new Set(JSON.parse(localStorage.getItem("savedDeals") || "[]"))
   );
   const [slide, setSlide] = useState(0);
+  const [quick, setQuick] = useState(null);
 
-  useTick();
-
-  /* auto slide banner */
+  // banner auto slide
   useEffect(() => {
     const id = setInterval(
       () => setSlide((s) => (s + 1) % BANNERS.length),
@@ -212,7 +229,7 @@ export default function KhuyenMai() {
     return () => clearInterval(id);
   }, []);
 
-  /* filter deals */
+  // lọc deal
   const filtered = useMemo(() => {
     const now = new Date();
     const byTab = (d) => {
@@ -232,250 +249,254 @@ export default function KhuyenMai() {
     const next = new Set(saved);
     next.has(code) ? next.delete(code) : next.add(code);
     setSaved(next);
-    localStorage.setItem("savedDeals", JSON.stringify(Array.from(next)));
+    localStorage.setItem("savedDeals", JSON.stringify([...next]));
+  };
+
+  const handleAddToCart = (p) => {
+    console.log("add to cart", p);
+    setQuick(null);
   };
 
   return (
-    <main className="lc promo">
-      <PageBar
-        title="Khuyến mãi • Ưu đãi sốc"
-        subtitle="Banner • Deal • Sản phẩm hot — Ố dề cho đã!"
-      />
+    <>
+      <main className="lc promo">
+        <PageBar
+          title="Khuyến mãi • Ưu đãi sốc"
+          subtitle="Banner • Deal • Sản phẩm hot — Ố dề cho đã!"
+        />
 
-      {/* ===== Mega Banner + Ticker ===== */}
-      <section className="mega-wrap">
-        <div className="mega">
-          {BANNERS.map((b, i) => (
-            <article
-              key={b.id}
-              className={`slide ${i === slide ? "active" : ""}`}
-              style={{ backgroundImage: `url(${b.img})` }}
-            >
-              <span className={`badge ${b.color}`}>{b.badge}</span>
-              <h2>{b.title}</h2>
-              <p>{b.sub}</p>
-              <div className="dots">
-                {BANNERS.map((_x, idx) => (
-                  <button
-                    key={idx}
-                    className={idx === slide ? "on" : ""}
-                    onClick={() => setSlide(idx)}
-                  />
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="ticker">
-          <marquee scrollAmount="8">
-            🔔 <b>Đang diễn ra:</b> Flash Sale 20:00 • Mã <b>SKIN30</b> giảm 30%
-            • Vitamin <b>Mua 2 Tặng 1</b> • Thiết bị y tế <b>đến 49%</b> — Săn
-            nhanh kẻo hết!
-          </marquee>
-        </div>
-      </section>
-
-      {/* ===== Search + Categories ===== */}
-      <section className="kv-hero">
-        <div className="kv-copy">
-          <div className="kv-search">
-            <i className="ri-search-line"></i>
-            <input
-              placeholder="Tìm mã / sản phẩm / danh mục…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </div>
-          <div className="kv-cats">
-            {CATS.map((c) => (
-              <button
-                key={c}
-                className={`chip ${cat === c ? "active" : ""}`}
-                onClick={() => setCat(c)}
+        {/* ===== Mega Banner + Ticker ===== */}
+        <section className="mega-wrap">
+          <div className="mega">
+            {BANNERS.map((b, i) => (
+              <article
+                key={b.id}
+                className={`slide ${i === slide ? "active" : ""}`}
+                style={{ backgroundImage: `url(${b.img})` }}
               >
-                {c}
-              </button>
+                <span className={`badge ${b.color}`}>{b.badge}</span>
+                <h2>{b.title}</h2>
+                <p>{b.sub}</p>
+                <img className="slide-decor" src={b.icon} alt={b.title} />
+                <div className="dots">
+                  {BANNERS.map((_x, idx) => (
+                    <button
+                      key={idx}
+                      className={idx === slide ? "on" : ""}
+                      onClick={() => setSlide(idx)}
+                    />
+                  ))}
+                </div>
+              </article>
             ))}
           </div>
-        </div>
-        <div className="kv-banner">
-          <div className="kv-glow" />
-          <div className="kv-badge">Hôm nay</div>
-          <h3>Deal Xịn Mỗi Ngày</h3>
-          <p>Giảm đến 49% + Freeship 2h</p>
-          <div className="kv-row">
-            <span>
-              <i className="ri-flashlight-fill"></i> Flash Sale 20:00
-            </span>
-            <span>
-              <i className="ri-coupon-3-line"></i> Sưu tầm mã
-            </span>
-          </div>
-        </div>
-      </section>
 
-      {/* ===== Tabs ===== */}
-      <div className="kv-tabs">
-        <button
-          className={tab === "dangdienra" ? "active" : ""}
-          onClick={() => setTab("dangdienra")}
-        >
-          <i className="ri-fire-line"></i> Đang diễn ra
-        </button>
-        <button
-          className={tab === "sapdienra" ? "active" : ""}
-          onClick={() => setTab("sapdienra")}
-        >
-          <i className="ri-timer-line"></i> Sắp diễn ra
-        </button>
-        <button
-          className={tab === "daketthuc" ? "active" : ""}
-          onClick={() => setTab("daketthuc")}
-        >
-          <i className="ri-flag-line"></i> Đã kết thúc
-        </button>
-      </div>
-
-      {/* ===== Deals grid (như cũ) ===== */}
-      <section className="deal-grid">
-        {filtered.length === 0 ? (
-          <div className="empty">
-            Không có ưu đãi phù hợp • Thử từ khóa khác?
+          <div className="ticker">
+            <marquee scrollAmount="8">
+              🔔 <b>Đang diễn ra:</b> Flash Sale 20:00 • Mã <b>SKIN30</b> giảm
+              30% • Vitamin <b>Mua 2 Tặng 1</b> • Thiết bị y tế <b>đến 49%</b> —
+              Săn nhanh kẻo hết!
+            </marquee>
           </div>
-        ) : (
-          filtered.map((d) => {
-            const pct = Math.min(100, Math.round((d.used / d.limit) * 100));
-            const timeLeft = leftTime(d.endsAt);
-            const ended = new Date(d.endsAt) < new Date();
-            const soon = !ended && new Date(d.endsAt) - new Date() < 36e5;
-            return (
-              <article
-                className={`deal-card ${ended ? "is-ended" : ""}`}
-                key={d.id}
-              >
-                <div
-                  className="media"
-                  style={{ backgroundImage: `url(${d.cover})` }}
+        </section>
+
+        {/* ===== SEARCH + CATEGORY ===== */}
+        <section className="promo-search">
+          <div className="search-left">
+            <div className="search-box">
+              <i className="ri-search-line"></i>
+              <input
+                type="text"
+                placeholder="Tìm mã / sản phẩm / danh mục..."
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </div>
+            <div className="search-cats">
+              {CATS.map((c) => (
+                <button
+                  key={c}
+                  className={`chip ${cat === c ? "active" : ""}`}
+                  onClick={() => setCat(c)}
                 >
-                  <div className="media-grad"></div>
-                  <span className="tag">{d.cat}</span>
-                  {ended ? (
-                    <span className="state end">KẾT THÚC</span>
-                  ) : (
-                    <span className={`state ${soon ? "soon" : "run"}`}>
-                      {tab === "sapdienra" ? "SẮP DIỄN RA" : "ĐANG DIỄN RA"}
-                    </span>
-                  )}
-                </div>
-                <div className="body">
-                  <h3>{d.title}</h3>
-                  <p className="desc">{d.desc}</p>
-                  <div className="meta">
-                    <div className="progress">
-                      <i className="ri-fire-fill"></i>
-                      <div className="bar">
-                        <span style={{ width: `${pct}%` }} />
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== Tabs ===== */}
+        <div className="kv-tabs">
+          <button
+            className={tab === "dangdienra" ? "active" : ""}
+            onClick={() => setTab("dangdienra")}
+          >
+            <i className="ri-fire-line"></i> Đang diễn ra
+          </button>
+          <button
+            className={tab === "sapdienra" ? "active" : ""}
+            onClick={() => setTab("sapdienra")}
+          >
+            <i className="ri-timer-line"></i> Sắp diễn ra
+          </button>
+          <button
+            className={tab === "daketthuc" ? "active" : ""}
+            onClick={() => setTab("daketthuc")}
+          >
+            <i className="ri-flag-line"></i> Đã kết thúc
+          </button>
+        </div>
+
+        {/* ===== Deals grid ===== */}
+        <section className="deal-grid">
+          {filtered.length === 0 ? (
+            <div className="empty">
+              Không có ưu đãi phù hợp • Thử từ khóa khác?
+            </div>
+          ) : (
+            filtered.map((d) => {
+              const pct = Math.min(100, Math.round((d.used / d.limit) * 100));
+              const timeLeft = leftTime(d.endsAt);
+              const ended = new Date(d.endsAt) < new Date();
+              const soon = !ended && new Date(d.endsAt) - new Date() < 36e5;
+              return (
+                <article
+                  className={`deal-card ${ended ? "is-ended" : ""}`}
+                  key={d.id}
+                >
+                  <div
+                    className="media"
+                    style={{ backgroundImage: `url(${d.cover})` }}
+                  >
+                    <div className="media-grad"></div>
+                    <span className="tag">{d.cat}</span>
+                    {ended ? (
+                      <span className="state end">KẾT THÚC</span>
+                    ) : (
+                      <span className={`state ${soon ? "soon" : "run"}`}>
+                        {tab === "sapdienra" ? "SẮP DIỄN RA" : "ĐANG DIỄN RA"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="body">
+                    <h3>{d.title}</h3>
+                    <p className="desc">{d.desc}</p>
+                    <div className="meta">
+                      <div className="progress">
+                        <i className="ri-fire-fill"></i>
+                        <div className="bar">
+                          <span style={{ width: `${pct}%` }} />
+                        </div>
+                        <small>{pct}% đã dùng</small>
                       </div>
-                      <small>{pct}% đã dùng</small>
+                      <div className="timer">
+                        <i className="ri-timer-2-line"></i>
+                        <b>{ended ? "00:00:00" : timeLeft}</b>
+                        <small>còn lại</small>
+                      </div>
                     </div>
-                    <div className="timer">
-                      <i className="ri-timer-2-line"></i>
-                      <b>{ended ? "00:00:00" : timeLeft}</b>
-                      <small>còn lại</small>
+                    <div className="coupon">
+                      <code>{d.code}</code>
+                      <button
+                        className={`btn ${saved.has(d.code) ? "saved" : ""}`}
+                        onClick={() => saveCode(d.code)}
+                      >
+                        {saved.has(d.code) ? (
+                          <>
+                            <i className="ri-check-line"></i> Đã lưu
+                          </>
+                        ) : (
+                          <>
+                            <i className="ri-save-3-line"></i> Lưu mã
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
-                  <div className="coupon">
-                    <code>{d.code}</code>
-                    <button
-                      className={`btn ${saved.has(d.code) ? "saved" : ""}`}
-                      onClick={() => saveCode(d.code)}
-                    >
-                      {saved.has(d.code) ? (
-                        <>
-                          <i className="ri-check-line"></i> Đã lưu
-                        </>
-                      ) : (
-                        <>
-                          <i className="ri-save-3-line"></i> Lưu mã
-                        </>
-                      )}
+                </article>
+              );
+            })
+          )}
+        </section>
+
+        {/* ===== Sản phẩm HOT ===== */}
+        <section className="hot-section">
+          <div className="hot-head">
+            <h2>Sản phẩm HOT</h2>
+            <p>Giảm sâu – bán chạy – xem là muốn chốt!</p>
+          </div>
+          <div className="prod-grid">
+            {PRODUCTS.map((p) => (
+              <article className="prod-card" key={p.id}>
+                <div
+                  className="thumb"
+                  style={{ backgroundImage: `url(${p.cover || p.img})` }}
+                >
+                  <span className="off">-{p.discount}%</span>
+                  <span className="tag">{p.tag}</span>
+                </div>
+                <div className="p-body">
+                  <h3>{p.name}</h3>
+                  <div className="price">
+                    <b>{formatVND(p.price)}</b>
+                    <s>{formatVND(p.oldPrice)}</s>
+                  </div>
+                  <div className="meta">
+                    <span className="rate">
+                      <i className="ri-star-fill" /> {p.rating.toFixed(1)}
+                    </span>
+                    <span className="sold">
+                      Đã bán {p.sold.toLocaleString("vi-VN")}
+                    </span>
+                  </div>
+                  <div className="p-progress">
+                    <span
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          Math.round((p.sold / 1200) * 100)
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="actions">
+                    <button className="btn-buy">
+                      <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
+                    </button>
+                    <button className="btn-ghost" onClick={() => setQuick(p)}>
+                      <i className="ri-eye-line" /> Xem nhanh
                     </button>
                   </div>
                 </div>
               </article>
-            );
-          })
-        )}
-      </section>
+            ))}
+          </div>
+        </section>
 
-      {/* ===== Sản phẩm hot (Ố dề) ===== */}
-      <section className="hot-head">
-        <h2>Sản phẩm HOT</h2>
-        <p>Giảm sâu – bán chạy – xem là muốn chốt!</p>
-      </section>
-      <section className="prod-grid">
-        {PRODUCTS.map((p) => (
-          <article className="prod-card" key={p.id}>
-            <div className="thumb" style={{ backgroundImage: `url(${p.img})` }}>
-              <span className="off">-{p.discount}%</span>
-              <span className="tag">{p.tag}</span>
-            </div>
-            <div className="p-body">
-              <h3>{p.name}</h3>
-              <div className="price">
-                <b>{formatVND(p.price)}</b>
-                <s>{formatVND(p.oldPrice)}</s>
-              </div>
-              <div className="meta">
-                <span className="rate">
-                  <i className="ri-star-fill" /> {p.rating.toFixed(1)}
-                </span>
-                <span className="sold">
-                  Đã bán {p.sold.toLocaleString("vi-VN")}
-                </span>
-              </div>
-              <div className="p-progress">
-                <span
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      Math.round((p.sold / 1200) * 100)
-                    )}%`,
-                  }}
-                />
-              </div>
-              <div className="actions">
-                <button className="btn-buy">
-                  <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
-                </button>
-                <button className="btn-ghost">
-                  <i className="ri-eye-line" /> Xem nhanh
-                </button>
-              </div>
-            </div>
-          </article>
-        ))}
-      </section>
+        {/* ===== Note ===== */}
+        <section className="promo-note">
+          <details>
+            <summary>
+              <i className="ri-information-line"></i> Điều kiện & Lưu ý
+            </summary>
+            <ul>
+              <li>Mỗi mã áp dụng 1 lần/khách, không cộng dồn với mã khác.</li>
+              <li>Áp dụng cho đơn online tại hệ thống cửa hàng liên kết.</li>
+              <li>Ưu đãi có thể kết thúc sớm khi hết ngân sách.</li>
+            </ul>
+          </details>
+        </section>
+      </main>
 
-      {/* ===== Note ===== */}
-      <section className="promo-note">
-        <details>
-          <summary>
-            <i className="ri-information-line"></i> Điều kiện & Lưu ý
-          </summary>
-          <ul>
-            <li>Mỗi mã áp dụng 1 lần/khách, không cộng dồn với mã khác.</li>
-            <li>Áp dụng cho đơn online tại hệ thống cửa hàng liên kết.</li>
-            <li>Ưu đãi có thể kết thúc sớm khi hết ngân sách.</li>
-          </ul>
-        </details>
-      </section>
-    </main>
+      {/* Modal tách ra ngoài <main> qua portal */}
+      {quick && (
+        <QuickViewModal
+          data={quick}
+          onAdd={handleAddToCart}
+          onClose={() => setQuick(null)}
+        />
+      )}
+    </>
   );
-}
-
-/* ===== Utils ===== */
-function formatVND(n) {
-  return n.toLocaleString("vi-VN") + "đ";
 }
