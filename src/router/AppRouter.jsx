@@ -16,6 +16,7 @@ import BaiVietDetail from "../pages/BaiVietDetail";
 import NewProductDetail from "../pages/NewProductDetail";
 import DatLich from "../pages/DatLich";
 import Booking from "../pages/Booking";
+import Thuoc from "../pages/Thuoc";
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -41,6 +42,7 @@ export default function AppRouter() {
           <Route path="/hang-moi/:id" element={<NewProductDetail />} />
           <Route path="/dat-lich" element={<DatLich />} />
           <Route path="/dat-lich" element={<Booking />} />
+          <Route path="/thuoc" element={<Thuoc />} />
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
