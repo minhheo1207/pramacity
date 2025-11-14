@@ -110,12 +110,28 @@ export const PRODUCTS = [
 
 export const getProductById = (id) =>
   PRODUCTS.find((p) => String(p.id) === String(id));
-export const getRelatedProducts = (p, limit = 4) =>
-  p
-    ? PRODUCTS.filter(
-        (x) => x.id !== p.id && (x.cat === p.cat || x.brand === p.brand)
-      ).slice(0, limit)
-    : [];
+export const getRelatedProducts = (p, limit = 3) => {
+  if (!p) return [];
+
+  // Ưu tiên cùng danh mục / thương hiệu
+  let list = PRODUCTS.filter(
+    (x) => x.id !== p.id && (x.cat === p.cat || x.brand === p.brand)
+  );
+
+  const seen = new Set(list.map((x) => x.id));
+
+  // Nếu chưa đủ thì lấy thêm SP bất kỳ (khác chính nó) cho đủ limit
+  if (list.length < limit) {
+    for (const x of PRODUCTS) {
+      if (x.id === p.id || seen.has(x.id)) continue;
+      list.push(x);
+      seen.add(x.id);
+      if (list.length >= limit) break;
+    }
+  }
+
+  return list.slice(0, limit);
+};
 
 export function readCart() {
   try {

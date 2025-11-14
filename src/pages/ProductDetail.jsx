@@ -1,228 +1,212 @@
 // src/pages/ProductDetail.jsx
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useMemo, useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import PageBar from "../components/PageBar";
-import Frame from "../components/Frame";
 import {
   getProductById,
   getRelatedProducts,
   addToCart,
 } from "../services/products";
 import "../assets/css/product-detail.css";
+
+const vnd = (n) => n.toLocaleString("vi-VN") + "đ";
+
+// Toast mini
+function toast(msg) {
+  let wrap = document.querySelector(".toast-wrap");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.className = "toast-wrap";
+    document.body.appendChild(wrap);
+  }
+  const t = document.createElement("div");
+  t.className = "toast-item";
+  t.textContent = msg;
+  wrap.appendChild(t);
+  requestAnimationFrame(() => t.classList.add("show"));
+  setTimeout(() => {
+    t.classList.remove("show");
+    setTimeout(() => t.remove(), 250);
+  }, 2200);
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
-  const nav = useNavigate();
-  const product = useMemo(() => getProductById(id), [id]);
-  const [qty, setQty] = useState(1);
-  const [tab, setTab] = useState("desc");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [id]);
-
+  const product = getProductById(id);
   if (!product) {
     return (
-      <main className="lc container">
-        <PageBar
-          title="Không tìm thấy sản phẩm"
-          subtitle="Sản phẩm có thể đã bị xoá hoặc tạm ẩn"
-        />
-        <p>
-          <Link className="btn" to="/ban-chay">
-            ← Quay lại Bán chạy
-          </Link>
-        </p>
+      <main className="pd">
+        <PageBar title="Sản phẩm không tồn tại" />
+        <div className="container pd-empty">
+          Không tìm thấy sản phẩm. Có thể sản phẩm đã được cập nhật lại.
+        </div>
       </main>
     );
   }
 
-  const fmt = (n) => n.toLocaleString("vi-VN") + "đ";
-  const stars = (r) =>
-    "★".repeat(Math.round(r)) + "☆".repeat(5 - Math.round(r));
-  const related = getRelatedProducts(product, 4);
+  const related = getRelatedProducts(product, 3);
+
+  const handleAdd = (p = product) => {
+    try {
+      addToCart(p, 1);
+    } catch {}
+    toast(`Đã thêm “${p.name}” vào giỏ`);
+  };
+
+  const saleText = product.sale || "";
 
   return (
-    <main className="lc product-detail">
-      <PageBar
-        title={product.name}
-        subtitle={`${product.brand} • ${product.cat}`}
-        right={
-          <Link className="btn btn--ghost" to="/ban-chay">
-            ← Danh sách
-          </Link>
-        }
-      />
+    <main className="pd">
+      <PageBar title="Chi tiết sản phẩm" />
 
-      <div className="container pd-wrap">
-        <section className="pd-main">
-          <div className="pd-gallery">
-            <div className="pd-cover">
-              <img src={product.img} alt={product.name} />
-              {product.sale && (
-                <span className="badge-sale">{product.sale}</span>
-              )}
-            </div>
+      {/* CARD 2 CỘT */}
+      <div className="container pd-layout">
+        {/* CỘT ẢNH */}
+        <div>
+          <div className="pd-media-main">
+            {saleText && <span className="pd-sale-badge">{saleText}</span>}
+            <img src={product.img} alt={product.name} />
           </div>
 
-          <div className="pd-info">
-            <div className="pd-meta">
-              <span className="stars">{stars(product.rating)}</span>
-              <span className="dot">•</span>
-              <span>{product.sold.toLocaleString()} đã bán</span>
-              <span className="dot">•</span>
-              <span className="pill">{product.brand}</span>
-              <span className="pill">{product.cat}</span>
-            </div>
+          {/* thumbnails – tạm dùng lại ảnh chính */}
+          <div className="pd-thumbs">
+            {[1, 2, 3, 4].map((i) => (
+              <button className="pd-thumb" key={i} type="button">
+                <img src={product.img} alt={product.name} />
+              </button>
+            ))}
+          </div>
 
-            <div className="pd-price">
+          <div className="pd-meta-small">
+            <span>
+              <i className="ri-shield-check-line" /> Hàng chính hãng
+            </span>
+            <span>
+              <i className="ri-truck-line" /> Giao nhanh trong ngày
+            </span>
+            <span>
+              <i className="ri-24-hours-line" /> Tư vấn dược sĩ 24/7
+            </span>
+          </div>
+        </div>
+
+        {/* CỘT THÔNG TIN */}
+        <div className="pd-info">
+          <nav className="pd-breadcrumb">
+            <Link to="/">Trang chủ</Link>
+            <span>/</span>
+            <span>{product.cat}</span>
+          </nav>
+
+          <h1 className="pd-title">{product.name}</h1>
+
+          <div className="pd-rating-row">
+            <span className="pd-rating">
+              <i className="ri-star-fill" /> {product.rating.toFixed(1)}
+            </span>
+            <span className="pd-dot" />
+            <span>
+              Đã bán{" "}
+              <b>{product.sold ? product.sold.toLocaleString("vi-VN") : 0}</b>{" "}
+              sản phẩm
+            </span>
+          </div>
+
+          <div className="pd-brand-row">
+            <span>
+              Thương hiệu: <b>{product.brand || "Đang cập nhật"}</b>
+            </span>
+            <span>Danh mục: {product.cat}</span>
+          </div>
+
+          {/* GIÁ */}
+          <div className="pd-price-box">
+            <div>
+              <div className="pd-price-main">{vnd(product.price)}</div>
               {product.old && (
-                <span className="price--old">{fmt(product.old)}</span>
+                <div className="pd-price-old">
+                  Giá niêm yết:
+                  <s>{vnd(product.old)}</s>
+                </div>
               )}
-              <span className="price">{fmt(product.price)}</span>
             </div>
+            {saleText && <span className="pd-price-tag">{saleText}</span>}
+          </div>
 
-            <div className="pd-qty">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))}>
-                –
-              </button>
-              <input
-                type="number"
-                value={qty}
-                min={1}
-                onChange={(e) =>
-                  setQty(Math.max(1, Number(e.target.value || 1)))
-                }
-              />
-              <button onClick={() => setQty((q) => q + 1)}>+</button>
-            </div>
+          {/* NÚT */}
+          <div className="pd-actions">
+            <button
+              type="button"
+              className="btn btn-main"
+              onClick={() => handleAdd()}
+            >
+              Chọn mua
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => navigate(-1)}
+            >
+              ← Quay lại
+            </button>
+          </div>
 
-            <div className="pd-actions">
-              <button className="btn" onClick={() => addToCart(product, qty)}>
-                Thêm vào giỏ
-              </button>
-              <button
-                className="btn btn--ghost"
-                onClick={() => {
-                  addToCart(product, qty);
-                  nav("/cart");
-                }}
-              >
-                Mua ngay
-              </button>
-            </div>
+          {/* MÔ TẢ */}
+          <div className="pd-section">
+            <h3>Mô tả sản phẩm</h3>
+            <p>{product.desc}</p>
+          </div>
 
-            <ul className="pd-bullets">
+          <div className="pd-section pd-note">
+            <h4>Lưu ý sử dụng</h4>
+            <ul>
+              <li>Đọc kỹ hướng dẫn sử dụng trước khi dùng.</li>
               <li>
-                <i className="ri-shield-check-line"></i> Hàng chính hãng, đổi
-                trả 7 ngày
+                Nếu đang mang thai, cho con bú hoặc có bệnh nền, hãy hỏi ý kiến
+                bác sĩ/dược sĩ.
               </li>
               <li>
-                <i className="ri-truck-line"></i> Giao nhanh trong 2 giờ nội
-                thành
-              </li>
-              <li>
-                <i className="ri-customer-service-2-line"></i> Tư vấn dược sĩ
-                24/7
+                Bảo quản nơi khô ráo, tránh ánh nắng trực tiếp, để xa tầm tay
+                trẻ em.
               </li>
             </ul>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section className="pd-tabs">
-          <nav className="tabs">
-            <button
-              className={tab === "desc" ? "active" : ""}
-              onClick={() => setTab("desc")}
-            >
-              Mô tả
-            </button>
-            <button
-              className={tab === "spec" ? "active" : ""}
-              onClick={() => setTab("spec")}
-            >
-              Thành phần & thông tin
-            </button>
-            <button
-              className={tab === "review" ? "active" : ""}
-              onClick={() => setTab("review")}
-            >
-              Đánh giá (demo)
-            </button>
-          </nav>
-
-          <div className="tab-body">
-            {tab === "desc" && (
-              <Frame title="Mô tả">
-                <p>{product.desc}</p>
-                <p>
-                  Lưu ý: Không dùng cho người mẫn cảm với bất kỳ thành phần nào.
-                </p>
-              </Frame>
-            )}
-            {tab === "spec" && (
-              <Frame title="Thành phần & thông tin">
-                <ul className="spec">
-                  <li>
-                    Thương hiệu: <b>{product.brand}</b>
-                  </li>
-                  <li>
-                    Danh mục: <b>{product.cat}</b>
-                  </li>
-                  <li>Xuất xứ: Việt Nam</li>
-                  <li>Hạn dùng: 24 tháng</li>
-                  <li>Bảo quản: Nơi khô ráo, dưới 30°C</li>
-                </ul>
-              </Frame>
-            )}
-            {tab === "review" && (
-              <Frame title="Đánh giá (demo)">
-                <p>⭐️⭐️⭐️⭐️☆ — “Sản phẩm tốt, giao nhanh!”</p>
-                <p>⭐️⭐️⭐️⭐️⭐️ — “Mình dùng hợp, sẽ mua lại.”</p>
-                <p className="muted">* Dữ liệu minh hoạ.</p>
-              </Frame>
-            )}
+      {/* SẢN PHẨM LIÊN QUAN */}
+      {related.length > 0 && (
+        <section className="pd-related">
+          <h3 className="pd-related-title">Sản phẩm liên quan</h3>
+          <div className="pd-related-grid">
+            {related.map((p) => (
+              <article key={p.id} className="pd-rel-card">
+                <Link to={`/san-pham/${p.id}`} className="pd-rel-thumb">
+                  <img src={p.img} alt={p.name} />
+                  {p.sale && <span className="pd-rel-sale">{p.sale}</span>}
+                </Link>
+                <div className="pd-rel-body">
+                  <h4 className="pd-rel-name" title={p.name}>
+                    {p.name}
+                  </h4>
+                  <div className="pd-rel-price">
+                    <span>{vnd(p.price)}</span>
+                    {p.old && <s>{vnd(p.old)}</s>}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-rel"
+                    onClick={() => handleAdd(p)}
+                  >
+                    Thêm giỏ
+                  </button>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
-
-        {related.length > 0 && (
-          <section className="pd-related">
-            <Frame title="Sản phẩm liên quan">
-              <div className="grid grid--product">
-                {related.map((p) => (
-                  <article className="card product" key={p.id}>
-                    <div className="card__media">
-                      <img src={p.img} alt={p.name} />
-                      {p.sale && <span className="badge-sale">{p.sale}</span>}
-                    </div>
-                    <div className="card__body">
-                      <h3 className="card__title">
-                        <Link to={`/san-pham/${p.id}`}>{p.name}</Link>
-                      </h3>
-                      <div className="price-row">
-                        {p.old && (
-                          <span className="price--old">{fmt(p.old)}</span>
-                        )}
-                        <span className="price">{fmt(p.price)}</span>
-                      </div>
-                      <div className="row">
-                        <Link
-                          className="btn btn--ghost"
-                          to={`/san-pham/${p.id}`}
-                        >
-                          Xem chi tiết
-                        </Link>
-                        <button className="btn" onClick={() => addToCart(p, 1)}>
-                          Thêm giỏ
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </Frame>
-          </section>
-        )}
-      </div>
+      )}
     </main>
   );
 }

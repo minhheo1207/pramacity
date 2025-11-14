@@ -7,7 +7,7 @@ import "../assets/css/hangmoi.css";
 
 const NEW_PRODUCTS = [
   {
-    id: "p-01",
+    id: "1",
     name: "Vitamin C 1000mg Nature’s Way",
     price: 195000,
     oldPrice: 230000,
@@ -19,7 +19,7 @@ const NEW_PRODUCTS = [
     category: "health",
   },
   {
-    id: "p-02",
+    id: "2",
     name: "Kem chống nắng La Roche-Posay SPF50+",
     price: 420000,
     oldPrice: 480000,
@@ -31,7 +31,7 @@ const NEW_PRODUCTS = [
     category: "skin",
   },
   {
-    id: "p-03",
+    id: "3",
     name: "Probiotic Enterogermina 5ml x 10 ống",
     price: 145000,
     cover: "/hangmoi/ProbioticEnterogermina.png",
@@ -42,7 +42,7 @@ const NEW_PRODUCTS = [
     category: "health",
   },
   {
-    id: "p-04",
+    id: "4",
     name: "Viên uống bổ não Ginkgo Biloba 120mg",
     price: 185000,
     oldPrice: 210000,
@@ -53,7 +53,7 @@ const NEW_PRODUCTS = [
     category: "health",
   },
   {
-    id: "p-05",
+    id: "5",
     name: "Siro ho Prospan Kid 100ml",
     price: 99000,
     cover: "/hangmoi/siro.png",
@@ -63,7 +63,7 @@ const NEW_PRODUCTS = [
     category: "kids",
   },
   {
-    id: "p-06",
+    id: "6",
     name: "Collagen nước DHC 50ml x 10 chai",
     price: 375000,
     oldPrice: 420000,
@@ -75,7 +75,7 @@ const NEW_PRODUCTS = [
     category: "skin",
   },
   {
-    id: "p-07",
+    id: "7",
     name: "Sữa rửa mặt Cerave Foaming Cleanser 236ml",
     price: 285000,
     cover: "/hangmoi/suaruamat.png",
@@ -86,7 +86,7 @@ const NEW_PRODUCTS = [
     category: "skin",
   },
   {
-    id: "p-08",
+    id: "8",
     name: "Omega-3 Fish Oil 1000mg",
     price: 210000,
     oldPrice: 245000,
@@ -301,7 +301,7 @@ export default function HangMoi() {
                   </div>
 
                   <h3 className="np-title">
-                    <Link to={`/hang-moi/${p.id}`}>{p.name}</Link>
+                    <Link to={`/san-pham/${p.id}`}>{p.name}</Link>
                   </h3>
 
                   <div className="np-price-row">
