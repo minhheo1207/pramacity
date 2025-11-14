@@ -186,6 +186,8 @@ const PRODUCTS = [
   },
 ];
 
+const HOT_PAGE_SIZE = 3; // 3 sp / trang → 2 trang
+
 /* ===== Helpers ===== */
 function addH(h) {
   const d = new Date();
@@ -220,6 +222,9 @@ export default function KhuyenMai() {
   const [slide, setSlide] = useState(0);
   const [quick, setQuick] = useState(null);
 
+  // ✅ phân trang cho SẢN PHẨM HOT
+  const [hotPage, setHotPage] = useState(1);
+
   // banner auto slide
   useEffect(() => {
     const id = setInterval(
@@ -229,7 +234,7 @@ export default function KhuyenMai() {
     return () => clearInterval(id);
   }, []);
 
-  // lọc deal
+  // lọc deal (không phân trang)
   const filtered = useMemo(() => {
     const now = new Date();
     const byTab = (d) => {
@@ -245,6 +250,17 @@ export default function KhuyenMai() {
     return DEALS.filter((d) => byTab(d) && byCat(d) && byQ(d));
   }, [tab, cat, q]);
 
+  // ✅ tính trang cho Sản phẩm HOT
+  const hotPageCount = useMemo(
+    () => Math.max(1, Math.ceil(PRODUCTS.length / HOT_PAGE_SIZE)),
+    []
+  );
+
+  const hotProducts = useMemo(() => {
+    const start = (hotPage - 1) * HOT_PAGE_SIZE;
+    return PRODUCTS.slice(start, start + HOT_PAGE_SIZE);
+  }, [hotPage]);
+
   const saveCode = (code) => {
     const next = new Set(saved);
     next.has(code) ? next.delete(code) : next.add(code);
@@ -256,6 +272,9 @@ export default function KhuyenMai() {
     console.log("add to cart", p);
     setQuick(null);
   };
+
+  const prevHotPage = () => setHotPage((p) => Math.max(1, p - 1));
+  const nextHotPage = () => setHotPage((p) => Math.min(hotPageCount, p + 1));
 
   return (
     <>
@@ -348,7 +367,7 @@ export default function KhuyenMai() {
           </button>
         </div>
 
-        {/* ===== Deals grid ===== */}
+        {/* ===== Deals grid (không phân trang) ===== */}
         <section className="deal-grid">
           {filtered.length === 0 ? (
             <div className="empty">
@@ -420,14 +439,14 @@ export default function KhuyenMai() {
           )}
         </section>
 
-        {/* ===== Sản phẩm HOT ===== */}
+        {/* ===== Sản phẩm HOT (có phân trang) ===== */}
         <section className="hot-section">
           <div className="hot-head">
             <h2>Sản phẩm HOT</h2>
             <p>Giảm sâu – bán chạy – xem là muốn chốt!</p>
           </div>
           <div className="prod-grid">
-            {PRODUCTS.map((p) => (
+            {hotProducts.map((p) => (
               <article className="prod-card" key={p.id}>
                 <div
                   className="thumb"
@@ -472,6 +491,25 @@ export default function KhuyenMai() {
               </article>
             ))}
           </div>
+
+          {/* Thanh phân trang cho Sản phẩm HOT */}
+          <div className="kv-paging">
+            <button
+              className="kv-page-btn"
+              onClick={prevHotPage}
+              disabled={hotPage === 1}
+            >
+              ‹ Trước
+            </button>
+            <span className="kv-page-current">{hotPage}</span>
+            <button
+              className="kv-page-btn"
+              onClick={nextHotPage}
+              disabled={hotPage === hotPageCount}
+            >
+              Sau ›
+            </button>
+          </div>
         </section>
 
         {/* ===== Note ===== */}
@@ -489,7 +527,6 @@ export default function KhuyenMai() {
         </section>
       </main>
 
-      {/* Modal tách ra ngoài <main> qua portal */}
       {quick && (
         <QuickViewModal
           data={quick}
