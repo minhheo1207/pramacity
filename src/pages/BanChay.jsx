@@ -9,7 +9,7 @@ import {
   addToCart,
   dispatchCartUpdated,
 } from "../services/products";
-
+import "../assets/css/ban-chay.css";
 const CATS = [
   "Tất cả",
   "Vitamin",
@@ -18,7 +18,7 @@ const CATS = [
   "Khẩu trang",
 ];
 const BRANDS = ["PharmaCity", "MedPro", "SunCare", "VitaPlus"];
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 4;
 
 export default function BanChay() {
   const nav = useNavigate();
@@ -213,9 +213,10 @@ export default function BanChay() {
                   onClick={() => nav(`/san-pham/${p.id}`)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img src={p.img} alt={p.name} loading="lazy" />
+                  <img src={p.cover || p.img} alt={p.name} loading="lazy" />
                   {p.sale && <span className="badge-sale">{p.sale}</span>}
                 </div>
+
                 <div className="card__body">
                   <h3 className="card__title">
                     <Link to={`/san-pham/${p.id}`}>{p.name}</Link>
@@ -251,27 +252,20 @@ export default function BanChay() {
             ))}
           </div>
 
-          <div className="pager">
+          {/* PHÂN TRANG kiểu Thuốc / Khuyến mãi */}
+          <div className="bc-paging">
             <button
-              className="btn sm"
+              className="bc-nav bc-nav--prev"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
               ‹ Trước
             </button>
-            <div className="pager__pages">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  className={"pager__dot" + (page === i + 1 ? " active" : "")}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
+
+            <span className="bc-page">{page}</span>
+
             <button
-              className="btn sm"
+              className="bc-nav bc-nav--next"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >

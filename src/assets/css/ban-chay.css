@@ -1,0 +1,266 @@
+/* ================== BÁN CHẠY – LAYOUT CHUNG ================== */
+
+/* Nền nhẹ cho cả trang Bán chạy */
+.lc.shop {
+  background: #f4f7ff;
+}
+
+/* 2 cột: sidebar lọc + khung trắng bên phải */
+.shop__wrap {
+  max-width: 1160px;
+  margin: 18px auto 40px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: flex-start;
+}
+
+/* Cột trái: khung lọc (Frame) */
+.shop__side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Khung trắng bên phải: toolbar + grid + phân trang */
+.shop__main {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  padding: 16px 18px 22px;
+}
+
+/* ================== THANH TÌM KIẾM HEADER ================== */
+
+.pb-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+}
+
+.pb-search i {
+  color: #1e3a8a;
+  font-size: 16px;
+}
+
+.pb-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.pb-search input::placeholder {
+  color: #94a3b8;
+}
+
+/* ================== FILTER – CHIPS BÊN TRÁI ================== */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid #d4ddff;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.chip:hover {
+  border-color: #2563eb;
+  background: #eef2ff;
+}
+
+.chip.active {
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+}
+
+/* Khoảng giá */
+.price-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.price-range input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid #d4ddff;
+  font-size: 13px;
+  outline: none;
+}
+
+.price-range input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* ================== TOOLBAR TRONG KHUNG TRẮNG ================== */
+
+.shop__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.shop__toolbar .muted {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.shop__actions select {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d4ddff;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  background: #f9fbff;
+}
+
+/* Grid sản phẩm */
+.grid.grid--product {
+  margin-top: 8px;
+  gap: 18px;
+}
+
+/* ================== NÚT TRONG CARD SẢN PHẨM ================== */
+
+.card.product .row {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+/* Nút chung */
+.card.product .btn,
+.card.product .btn.btn--ghost {
+  flex: 1;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 0 10px;
+  transition: 0.18s ease;
+}
+
+/* Thêm vào giỏ – xanh đậm */
+.card.product .btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+}
+
+/* Chi tiết – trắng viền xanh */
+.card.product .btn.btn--ghost {
+  background: #ffffff;
+  color: #1e3a8a;
+  border: 2px solid #2563eb;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+}
+
+.card.product .btn:hover,
+.card.product .btn.btn--ghost:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.97);
+}
+
+/* ================== PHÂN TRANG ================== */
+
+.bc-paging {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.bc-nav {
+  min-width: 120px;
+  height: 38px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  transition: 0.18s ease;
+}
+
+/* Nút Trước */
+.bc-nav--prev {
+  background: #a5b4fc;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+}
+
+/* Nút Sau */
+.bc-nav--next {
+  background: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.55);
+}
+
+.bc-nav:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(0.97);
+}
+
+.bc-nav:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Viên tròn số trang */
+.bc-page {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #1d3ab5;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+}
+
+/* ================== RESPONSIVE ================== */
+
+@media (max-width: 992px) {
+  .shop__wrap {
+    grid-template-columns: 1fr;
+  }
+}
+/* CHỈ đổi nền card sản phẩm thành trắng */
+.card.product {
+  background: #ffffff !important;
+}
