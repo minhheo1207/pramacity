@@ -1,0 +1,75 @@
+/* ===== GIỎ HÀNG TRÊN HEADER ===== */
+.header-cart {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* vòng halo mờ mờ phía sau */
+.header-cart__halo {
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(15, 23, 42, 0.18) 0%,
+    transparent 60%
+  );
+  opacity: 0.7;
+}
+
+/* nút tròn xanh đậm */
+.header-cart__btn {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, #315bff, #1436b8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.55);
+}
+
+.header-cart__icon {
+  font-size: 22px;
+  color: #ffffff;
+}
+
+/* Badge số lượng màu xanh lá */
+.header-cart__badge {
+  position: absolute;
+  top: -4px;
+  right: -2px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(5, 150, 105, 0.6);
+}
+
+/* hover nhẹ cho vui */
+.header-cart__btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+/* responsive nhỏ xíu cho mobile */
+@media (max-width: 640px) {
+  .header-cart__btn {
+    width: 44px;
+    height: 44px;
+  }
+  .header-cart__icon {
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,319 @@
+/* ======================================================
+   BACKGROUND TOÀN TRANG (NỀN XANH LOANG GIỐNG LONG CHÂU)
+====================================================== */
+
+.home-page {
+  width: 100%;
+  min-height: 100vh;
+  /* Xanh loang từ trên xuống tận cuối trang */
+  background: linear-gradient(
+    180deg,
+    #0a6bff 0%,
+    #1c63ff 40%,
+    #e5f0ff 75%,
+    #f8fafc 100%
+  );
+  overflow-x: hidden;
+}
+
+/* ======================================================
+   HERO FULL WIDTH (BANNER TRÀN NGANG)
+====================================================== */
+
+.hero-full {
+  width: 100%;
+  height: 360px;
+  position: relative;
+  margin-bottom: 26px;
+}
+
+/* nền xanh phía sau (có cũng được, bỏ cũng được) */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0a6bff 0%, #1c63ff 50%, #eaf2ff 100%);
+  z-index: 1;
+}
+
+/* Banner slider – FULL chiều ngang */
+.hero-slide {
+  width: 100%; /* 👈 không max-width nữa */
+  height: 100%;
+  margin: 0;
+  border-radius: 0; /* full màn hình nên không bo góc */
+  position: relative;
+  z-index: 5;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-image 0.7s ease;
+  box-shadow: none; /* không cần bóng vì full width */
+}
+
+/* Arrow buttons */
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+}
+
+.hero-arrow.left {
+  display: none !important;
+}
+.hero-arrow.right {
+  display: none !important;
+}
+
+/* Dots */
+.hero-dots {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 20;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  transition: 0.2s;
+}
+
+.dot.active {
+  width: 22px;
+  background: white;
+}
+
+/* ======================================================
+   CONTENT TRẮNG BÊN DƯỚI
+====================================================== */
+
+.home-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  background: transparent;
+  padding: 0 12px 40px;
+}
+
+/* Panel trắng cho các section trong home-container */
+/* ======================================================
+   PANEL LOANG MẠNH – CHUẨN LONG CHÂU
+====================================================== */
+.home-container > .section {
+  background: linear-gradient(
+    145deg,
+    rgba(0, 105, 255, 0.14) 0%,
+    rgba(0, 95, 230, 0.18) 18%,
+    rgba(255, 255, 255, 0.95) 60%,
+    #ffffff 100%
+  );
+  border-radius: 24px;
+  padding: 22px 22px 28px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+/* -------- Section header -------- */
+.section {
+  margin-top: 30px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.section-head h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.section-head .view-all,
+.section-head .home-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+/* ======================================================
+   DEAL CARD
+====================================================== */
+
+.deal-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.deal-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.deal-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.deal-tag {
+  background: #16a34a;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.deal-status {
+  background: #7c3aed;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.deal-body {
+  display: flex;
+  gap: 10px;
+}
+
+.deal-img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.deal-info h3 {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.desc {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.price-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.old {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.price {
+  color: #d32f2f;
+  font-weight: 700;
+}
+
+/* Actions */
+.btn-sm {
+  background: #1d4ed8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-sm.ghost {
+  background: #e5edff;
+  color: #1e3a8a;
+}
+
+/* ======================================================
+   SUGGEST
+====================================================== */
+
+.suggest-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.suggest-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.suggest-img {
+  width: 100%;
+  height: 140px;
+  object-fit: contain;
+}
+
+.suggest-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 6px 0;
+}
+
+.suggest-card .price-wrap {
+  gap: 6px;
+}
+
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
+@media (max-width: 992px) {
+  .deal-grid,
+  .suggest-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .deal-grid,
+  .suggest-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ======================================================
+   PANEL TRẮNG + HIỆU ỨNG LOANG XANH NHẸ (GIỐNG LONG CHÂU)
+====================================================== */
+.home-container > .section {
+  background: linear-gradient(
+    145deg,
+    rgba(240, 248, 255, 0.9) 0%,
+    rgba(227, 239, 255, 0.95) 40%,
+    rgba(255, 255, 255, 1) 100%
+  );
+  border-radius: 22px;
+  padding: 18px 18px 26px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  margin-top: 26px;
+  backdrop-filter: blur(6px);
+}
