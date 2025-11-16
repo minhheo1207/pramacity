@@ -20,12 +20,33 @@ export default function Account() {
   const [status, setStatus] = useState("all"); // all | pending | shipping | delivered | cancelled
   const [sort, setSort] = useState("newest"); // newest | oldest | totalDesc | totalAsc
 
+  // --- ✏️ Trạng thái chỉnh sửa thông tin cá nhân ---
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    name: "",
+    phone: "",
+    gender: "",
+    birthday: "",
+  });
+
   useEffect(() => {
     if (user?.id) {
       seedOrdersIfEmpty(user.id);
       setOrders(getOrdersByUser(user.id));
     }
   }, [user?.id]);
+
+  // Khởi tạo dữ liệu edit khi user thay đổi
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || "",
+        phone: user.phone || "",
+        gender: user.gender || "",
+        birthday: user.birthday || "",
+      });
+    }
+  }, [user]);
 
   const ordersCount = useMemo(() => orders.length, [orders]);
 
@@ -74,15 +95,64 @@ export default function Account() {
     );
   }
 
+  // Bật chế độ chỉnh sửa
+  function handleEdit() {
+    setIsEditing(true);
+  }
+
+  // Hủy chỉnh sửa
+  function handleCancel() {
+    setIsEditing(false);
+    // Khôi phục dữ liệu gốc
+    setEditData({
+      name: user.name || "",
+      phone: user.phone || "",
+      gender: user.gender || "",
+      birthday: user.birthday || "",
+    });
+  }
+
+  // Lưu thông tin đã chỉnh sửa
   async function handleSave(e) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    await updateProfile({
-      id: user.id,
-      name: f.get("name").toString().trim(),
-      phone: f.get("phone").toString().trim(),
-    });
-    alert("Đã lưu hồ sơ!");
+    try {
+      await updateProfile({
+        id: user.id,
+        name: editData.name.trim(),
+        phone: editData.phone.trim(),
+        gender: editData.gender,
+        birthday: editData.birthday,
+      });
+      setIsEditing(false);
+      // Toast notification
+      showToast("Đã cập nhật thông tin thành công!");
+    } catch (error) {
+      showToast("Có lỗi xảy ra khi cập nhật thông tin", "error");
+    }
+  }
+
+  // Cập nhật từng field
+  function handleFieldChange(field, value) {
+    setEditData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // Toast notification
+  function showToast(message, type = "success") {
+    let toastWrap = document.querySelector(".toast-wrap");
+    if (!toastWrap) {
+      toastWrap = document.createElement("div");
+      toastWrap.className = "toast-wrap";
+      document.body.appendChild(toastWrap);
+    }
+    const toast = document.createElement("div");
+    toast.className = `toast-item ${type}`;
+    toast.textContent = message;
+    toastWrap.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("show"));
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 2500);
   }
 
   async function onPickAvatar(e) {
@@ -190,61 +260,146 @@ export default function Account() {
               <Frame
                 title="Thông tin cá nhân"
                 actions={
-                  <button className="btn btn-primary">
-                    Chỉnh sửa thông tin
-                  </button>
+                  !isEditing ? (
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleEdit}
+                      type="button"
+                    >
+                      <i className="ri-edit-line"></i> Chỉnh sửa thông tin
+                    </button>
+                  ) : (
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <button
+                        className="btn btn--ghost"
+                        onClick={handleCancel}
+                        type="button"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        className="btn btn-primary"
+                        onClick={handleSave}
+                        type="button"
+                      >
+                        <i className="ri-save-line"></i> Lưu thay đổi
+                      </button>
+                    </div>
+                  )
                 }
               >
-                <div className="profile-row">
-                  <div className="acc-ava lg">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="" />
-                    ) : (
-                      <i className="ri-user-3-line"></i>
-                    )}
-                  </div>
-                  <div className="profile-table">
-                    <div>
-                      <span>Họ và tên</span>
-                      <b>{user.name}</b>
+                <form onSubmit={handleSave}>
+                  <div className="profile-row">
+                    <div className="acc-ava lg">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt="" />
+                      ) : (
+                        <i className="ri-user-3-line"></i>
+                      )}
                     </div>
-                    <div>
-                      <span>Email</span>
-                      <b>{user.email}</b>
-                    </div>
-                    <div>
-                      <span>Số điện thoại</span>
-                      <b>{user.phone || "Thêm thông tin"}</b>
-                    </div>
-                    <div>
-                      <span>Giới tính</span>
-                      <b>Thêm thông tin</b>
-                    </div>
-                    <div>
-                      <span>Ngày sinh</span>
-                      <b>Thêm thông tin</b>
-                    </div>
-                  </div>
-                </div>
-              </Frame>
+                    <div className="profile-table">
+                      <div className="profile-field">
+                        <label>
+                          <i className="ri-user-line"></i> Họ và tên
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editData.name}
+                            onChange={(e) =>
+                              handleFieldChange("name", e.target.value)
+                            }
+                            className="profile-input"
+                            placeholder="Nhập họ và tên"
+                          />
+                        ) : (
+                          <b>{user.name || "Chưa có thông tin"}</b>
+                        )}
+                      </div>
 
-              {/* ➌ Khung 2: Form cập nhật */}
-              <Frame title="Cập nhật hồ sơ">
-                <form className="form grid-2" onSubmit={handleSave}>
-                  <label>
-                    Họ và tên
-                    <input name="name" defaultValue={user.name} />
-                  </label>
-                  <label>
-                    Số điện thoại
-                    <input
-                      name="phone"
-                      defaultValue={user.phone || ""}
-                      placeholder="09xxxxxxxx"
-                    />
-                  </label>
-                  <div className="row-end">
-                    <button className="btn btn-primary">Lưu thay đổi</button>
+                      <div className="profile-field">
+                        <label>
+                          <i className="ri-mail-line"></i> Email
+                        </label>
+                        <b className="readonly">{user.email}</b>
+                        <span className="field-note">Email không thể thay đổi</span>
+                      </div>
+
+                      <div className="profile-field">
+                        <label>
+                          <i className="ri-phone-line"></i> Số điện thoại
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="tel"
+                            value={editData.phone}
+                            onChange={(e) =>
+                              handleFieldChange("phone", e.target.value)
+                            }
+                            className="profile-input"
+                            placeholder="09xxxxxxxx"
+                            pattern="[0-9]{10,11}"
+                          />
+                        ) : (
+                          <b>{user.phone || "Chưa có thông tin"}</b>
+                        )}
+                      </div>
+
+                      <div className="profile-field">
+                        <label>
+                          <i className="ri-genderless-line"></i> Giới tính
+                        </label>
+                        {isEditing ? (
+                          <select
+                            value={editData.gender}
+                            onChange={(e) =>
+                              handleFieldChange("gender", e.target.value)
+                            }
+                            className="profile-input"
+                          >
+                            <option value="">Chọn giới tính</option>
+                            <option value="male">Nam</option>
+                            <option value="female">Nữ</option>
+                            <option value="other">Khác</option>
+                          </select>
+                        ) : (
+                          <b>
+                            {editData.gender === "male"
+                              ? "Nam"
+                              : editData.gender === "female"
+                              ? "Nữ"
+                              : editData.gender === "other"
+                              ? "Khác"
+                              : "Chưa có thông tin"}
+                          </b>
+                        )}
+                      </div>
+
+                      <div className="profile-field">
+                        <label>
+                          <i className="ri-calendar-line"></i> Ngày sinh
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="date"
+                            value={editData.birthday}
+                            onChange={(e) =>
+                              handleFieldChange("birthday", e.target.value)
+                            }
+                            className="profile-input"
+                            max={new Date().toISOString().split("T")[0]}
+                          />
+                        ) : (
+                          <b>
+                            {editData.birthday
+                              ? new Date(editData.birthday).toLocaleDateString(
+                                  "vi-VN"
+                                )
+                              : "Chưa có thông tin"}
+                          </b>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </form>
               </Frame>

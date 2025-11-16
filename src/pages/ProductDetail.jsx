@@ -50,8 +50,10 @@ export default function ProductDetail() {
   const handleAdd = (p = product) => {
     try {
       addToCart(p, 1);
-    } catch {}
-    toast(`Đã thêm “${p.name}” vào giỏ`);
+      toast(`Đã thêm "${p.name}" vào giỏ`);
+    } catch (err) {
+      // Error đã được xử lý trong addToCart (hiển thị toast và mở modal)
+    }
   };
 
   const saleText = product.sale || "";

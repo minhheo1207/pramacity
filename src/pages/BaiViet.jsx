@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import PageBar from "../components/PageBar";
 import Frame from "../components/Frame";
-import { POSTS } from "../data/posts"; // ✅ dùng data chung
+import { getAllPosts } from "../services/posts";
 
 const CATS = [
   "Tất cả",
@@ -29,7 +29,7 @@ export default function BaiViet() {
 
   const list = useMemo(() => {
     const norm = (s) => (s || "").toLowerCase().trim();
-    let l = POSTS.slice();
+    let l = getAllPosts();
 
     if (cat !== "Tất cả") l = l.filter((p) => p.cat === cat);
     if (q.trim()) {
@@ -100,8 +100,8 @@ export default function BaiViet() {
 
           <Frame title="Bài nổi bật">
             <ul className="hotlist">
-              {POSTS.slice()
-                .sort((a, b) => b.views - a.views)
+              {getAllPosts()
+                .sort((a, b) => (b.views || 0) - (a.views || 0))
                 .slice(0, 6)
                 .map((p) => (
                   <li key={p.id}>

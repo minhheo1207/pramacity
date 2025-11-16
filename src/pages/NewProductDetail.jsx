@@ -180,16 +180,27 @@ export default function NewProductDetail() {
                 <div className="pd-actions">
                   <button
                     className="btn"
-                    onClick={() => addToCart(product, qty)}
+                    onClick={() => {
+                      try {
+                        addToCart(product, qty);
+                        toast("Đã thêm vào giỏ");
+                      } catch (err) {
+                        // Error đã được xử lý trong addToCart
+                      }
+                    }}
                   >
                     Thêm vào giỏ
                   </button>
                   <button
                     className="btn btn--ghost"
                     onClick={() => {
-                      addToCart(product, qty);
-                      toast("Đã thêm vào giỏ. Chuyển đến giỏ hàng…");
-                      nav("/cart");
+                      try {
+                        addToCart(product, qty);
+                        toast("Đã thêm vào giỏ. Chuyển đến giỏ hàng…");
+                        nav("/cart");
+                      } catch (err) {
+                        // Error đã được xử lý trong addToCart
+                      }
                     }}
                   >
                     Mua ngay
@@ -309,7 +320,16 @@ export default function NewProductDetail() {
                         >
                           Xem chi tiết
                         </Link>
-                        <button className="btn" onClick={() => addToCart(p, 1)}>
+                        <button
+                          className="btn"
+                          onClick={() => {
+                            try {
+                              addToCart(p, 1);
+                            } catch (err) {
+                              // Error đã được xử lý trong addToCart
+                            }
+                          }}
+                        >
                           Thêm giỏ
                         </button>
                       </div>

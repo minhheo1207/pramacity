@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageBar from "../components/PageBar";
 import "../assets/css/khuyenmai.css";
 import QuickViewModal from "../components/QuickViewModal";
+import { addToCart } from "../services/products";
 
 /* ===== Data ===== */
 const CATS = [
@@ -269,8 +270,12 @@ export default function KhuyenMai() {
   };
 
   const handleAddToCart = (p) => {
-    console.log("add to cart", p);
-    setQuick(null);
+    try {
+      addToCart(p, 1);
+      setQuick(null);
+    } catch (err) {
+      // Error đã được xử lý trong addToCart
+    }
   };
 
   const prevHotPage = () => setHotPage((p) => Math.max(1, p - 1));

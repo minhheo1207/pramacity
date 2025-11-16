@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import PageBar from "../components/PageBar";
 import Frame from "../components/Frame";
-import { getPostById, getRelatedPosts } from "../data/posts";
+import { getPostById, getRelatedPosts } from "../services/posts";
 import "../assets/css/blog-detail.css";
 
 export default function BaiVietDetail() {

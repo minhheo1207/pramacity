@@ -1,17 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-export default function QuickViewModal({ data, onClose, onAdd }) {
+export default function QuickViewModal({ data, onClose, onAdd, initialTab = "tong-quan" }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
   if (!data) return null;
 
   // Khóa cuộn khi mở modal, trả lại như cũ khi đóng
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Cập nhật tab khi initialTab thay đổi
+    setActiveTab(initialTab);
     return () => {
       document.body.style.overflow = prev || "";
     };
-  }, []);
+  }, [initialTab]);
 
   const node = (
     <div className="qv-overlay" onClick={onClose}>
@@ -19,8 +23,18 @@ export default function QuickViewModal({ data, onClose, onAdd }) {
         {/* Header */}
         <div className="qv-header">
           <div className="qv-tabs">
-            <button className="on">Tổng quan</button>
-            <button>Chi tiết</button>
+            <button 
+              className={activeTab === "tong-quan" ? "on" : ""}
+              onClick={() => setActiveTab("tong-quan")}
+            >
+              Tổng quan
+            </button>
+            <button 
+              className={activeTab === "chi-tiet" ? "on" : ""}
+              onClick={() => setActiveTab("chi-tiet")}
+            >
+              Chi tiết
+            </button>
           </div>
           <button className="qv-close" onClick={onClose}>
             ×
@@ -42,7 +56,7 @@ export default function QuickViewModal({ data, onClose, onAdd }) {
 
             <div className="qv-price">
               <b>{data.price.toLocaleString("vi-VN")}đ</b>
-              <s>{data.oldPrice.toLocaleString("vi-VN")}đ</s>
+              <s>{data.oldPrice?.toLocaleString("vi-VN")}đ</s>
             </div>
 
             <div className="qv-meta">
@@ -50,22 +64,76 @@ export default function QuickViewModal({ data, onClose, onAdd }) {
               <span>Đã bán {data.sold?.toLocaleString?.("vi-VN") ?? "0"}</span>
             </div>
 
-            <p className="qv-desc">
-              Sản phẩm đang được ưu đãi mạnh. Thêm vào giỏ để giữ giá ngay!
-            </p>
+            {/* Tab Content */}
+            {activeTab === "tong-quan" ? (
+              <>
+                <p className="qv-desc">
+                  Sản phẩm đang được ưu đãi mạnh. Thêm vào giỏ để giữ giá ngay!
+                </p>
 
-            <div className="qv-actions">
-              <button
-                className="qv-btn qv-primary"
-                onClick={() => onAdd?.(data)}
-              >
-                <i className="ri-shopping-cart-2-line" />
-                Thêm vào giỏ
-              </button>
-              <button className="qv-btn" onClick={onClose}>
-                Đóng
-              </button>
-            </div>
+                <div className="qv-actions">
+                  <button
+                    className="qv-btn qv-primary"
+                    onClick={() => onAdd?.(data)}
+                  >
+                    <i className="ri-shopping-cart-2-line" />
+                    Thêm vào giỏ
+                  </button>
+                  <button className="qv-btn" onClick={onClose}>
+                    Đóng
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="qv-detail">
+                <div className="qv-detail-section">
+                  <h4>Thông tin sản phẩm</h4>
+                  <ul>
+                    <li><strong>Tên sản phẩm:</strong> {data.name}</li>
+                    {data.brand && <li><strong>Thương hiệu:</strong> {data.brand}</li>}
+                    {data.form && <li><strong>Dạng bào chế:</strong> {data.form}</li>}
+                    {data.tag && <li><strong>Nhóm công dụng:</strong> {data.tag}</li>}
+                    <li><strong>Giá:</strong> {data.price.toLocaleString("vi-VN")}đ</li>
+                    {data.oldPrice && (
+                      <li><strong>Giá gốc:</strong> <s>{data.oldPrice.toLocaleString("vi-VN")}đ</s></li>
+                    )}
+                    {data.discount && (
+                      <li><strong>Giảm giá:</strong> -{data.discount}%</li>
+                    )}
+                    <li><strong>Đánh giá:</strong> ⭐ {data.rating?.toFixed?.(1) ?? "4.8"}/5.0</li>
+                    <li><strong>Đã bán:</strong> {data.sold?.toLocaleString("vi-VN") ?? "0"} sản phẩm</li>
+                  </ul>
+                </div>
+
+                <div className="qv-detail-section">
+                  <h4>Mô tả sản phẩm</h4>
+                  <p>
+                    {data.desc || "Sản phẩm chất lượng cao, được sản xuất theo tiêu chuẩn GMP. Phù hợp cho sử dụng hàng ngày."}
+                  </p>
+                </div>
+
+                <div className="qv-detail-section">
+                  <h4>Hướng dẫn sử dụng</h4>
+                  <p>
+                    Vui lòng đọc kỹ hướng dẫn sử dụng trước khi dùng. Nếu có bất kỳ thắc mắc nào, 
+                    hãy liên hệ với dược sĩ hoặc bác sĩ để được tư vấn chi tiết.
+                  </p>
+                </div>
+
+                <div className="qv-actions">
+                  <button
+                    className="qv-btn qv-primary"
+                    onClick={() => onAdd?.(data)}
+                  >
+                    <i className="ri-shopping-cart-2-line" />
+                    Thêm vào giỏ
+                  </button>
+                  <button className="qv-btn" onClick={onClose}>
+                    Đóng
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

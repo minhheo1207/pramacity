@@ -17,6 +17,10 @@ import NewProductDetail from "../pages/NewProductDetail";
 import DatLich from "../pages/DatLich";
 import Booking from "../pages/Booking";
 import Thuoc from "../pages/Thuoc";
+import GioHang from "../pages/GioHang";
+import AdminDashboard from "../pages/AdminDashboard";
+import EmployeeChat from "../pages/EmployeeChat";
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -43,9 +47,15 @@ export default function AppRouter() {
           <Route path="/dat-lich" element={<DatLich />} />
           <Route path="/dat-lich" element={<Booking />} />
           <Route path="/thuoc" element={<Thuoc />} />
+          <Route path="/gio-hang" element={<GioHang />} />
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
+
+        {/* Admin & Employee routes - không dùng Layout chung */}
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/employee/chat" element={<EmployeeChat />} />
       </Routes>
     </BrowserRouter>
   );

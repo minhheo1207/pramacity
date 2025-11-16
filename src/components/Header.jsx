@@ -1,17 +1,20 @@
 // src/components/Header.jsx
 import { useState, useRef, useEffect } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../utils/AuthContext";
 import AuthModal from "./AuthModal";
+import CartSidebar from "./CartSidebar";
 
 const CART_KEY = "demo_cart";
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [openUser, setOpenUser] = useState(false);
   const [openAuth, setOpenAuth] = useState(false);
+  const [openCart, setOpenCart] = useState(false);
 
   // ========== CART BADGE ==========
   const [cartQty, setCartQty] = useState(0);
@@ -157,6 +160,7 @@ export default function Header() {
                       onClick={() => {
                         setOpenUser(false);
                         logout();
+                        navigate("/");
                       }}
                     >
                       Đăng xuất
@@ -166,11 +170,16 @@ export default function Header() {
               </div>
             )}
 
-            <Link to="/cart" className="lc-cart" aria-label="Giỏ hàng">
+            <button
+              type="button"
+              className="lc-cart"
+              aria-label="Giỏ hàng"
+              onClick={() => setOpenCart(true)}
+            >
               <i className="ri-shopping-cart-2-line"></i>
               <span className="badge">{cartQty}</span>
               <span className="text">Giỏ hàng</span>
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -217,6 +226,9 @@ export default function Header() {
 
       {/* Modal đăng nhập/đăng ký */}
       <AuthModal open={openAuth} onClose={() => setOpenAuth(false)} />
+
+      {/* Cart Sidebar */}
+      <CartSidebar open={openCart} onClose={() => setOpenCart(false)} />
     </header>
   );
 }

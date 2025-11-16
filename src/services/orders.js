@@ -59,6 +59,42 @@ export function getOrderById(id) {
   return readOrders().find((o) => o.id === id) || null;
 }
 
+export function getAllOrders() {
+  return readOrders().sort((a, b) => b.createdAt - a.createdAt);
+}
+
+export function updateOrderStatus(id, status) {
+  const orders = readOrders();
+  const idx = orders.findIndex((o) => o.id === id);
+  if (idx === -1) throw new Error("Không tìm thấy đơn hàng");
+
+  orders[idx].status = status;
+  
+  // Update timeline based on status
+  if (status === "shipping" && !orders[idx].timeline.find((t) => t.label === "Đã bàn giao vận chuyển")) {
+    orders[idx].timeline.push({
+      label: "Đã bàn giao vận chuyển",
+      at: new Date().toISOString(),
+    });
+  }
+  if (status === "delivered" && !orders[idx].timeline.find((t) => t.label === "Đã giao")) {
+    orders[idx].timeline.push({
+      label: "Đã giao",
+      at: new Date().toISOString(),
+    });
+  }
+  
+  writeOrders(orders);
+  return orders[idx];
+}
+
+export function deleteOrder(id) {
+  const orders = readOrders();
+  const filtered = orders.filter((o) => o.id !== id);
+  writeOrders(filtered);
+  return true;
+}
+
 // Helpers
 function buildTimeline(status, start) {
   const mk = (label, d) => ({ label, at: new Date(d).toISOString() });

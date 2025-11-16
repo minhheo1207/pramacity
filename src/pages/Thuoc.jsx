@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PageBar from "../components/PageBar";
 import QuickViewModal from "../components/QuickViewModal";
+import { addToCart } from "../services/products";
 import "../assets/css/thuoc.css";
 
 // ==== DATA DEMO ====
@@ -169,6 +170,7 @@ export default function Thuoc() {
   const [form, setForm] = useState("Tất cả");
   const [sort, setSort] = useState("pho-bien");
   const [quick, setQuick] = useState(null);
+  const [quickTab, setQuickTab] = useState("tong-quan"); // "tong-quan" | "chi-tiet"
   const [page, setPage] = useState(1);
 
   // lọc + sắp xếp
@@ -460,14 +462,42 @@ export default function Thuoc() {
                     </div>
 
                     <div className="t-actions">
-                      <button className="btn btn--buy">
+                      <button
+                        className="btn btn--buy"
+                        onClick={() => {
+                          try {
+                            // Convert thuoc product format to cart format
+                            const cartProduct = {
+                              id: p.id,
+                              name: p.name,
+                              price: p.price,
+                              img: p.cover || p.img,
+                            };
+                            addToCart(cartProduct, 1);
+                          } catch (err) {
+                            // Error đã được xử lý trong addToCart
+                          }
+                        }}
+                      >
                         <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
                       </button>
                       <button
                         className="btn btn--ghost"
-                        onClick={() => setQuick(p)}
+                        onClick={() => {
+                          setQuickTab("tong-quan");
+                          setQuick(p);
+                        }}
                       >
                         <i className="ri-eye-line" /> Xem nhanh
+                      </button>
+                      <button
+                        className="btn btn--ghost"
+                        onClick={() => {
+                          setQuickTab("chi-tiet");
+                          setQuick(p);
+                        }}
+                      >
+                        <i className="ri-file-list-line" /> Chi tiết
                       </button>
                     </div>
                   </div>
@@ -517,7 +547,22 @@ export default function Thuoc() {
       {quick && (
         <QuickViewModal
           data={quick}
-          onAdd={() => setQuick(null)}
+          initialTab={quickTab}
+          onAdd={(product) => {
+            try {
+              // Convert thuoc product format to cart format
+              const cartProduct = {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                img: product.cover || product.img,
+              };
+              addToCart(cartProduct, 1);
+              setQuick(null);
+            } catch (err) {
+              // Error đã được xử lý trong addToCart
+            }
+          }}
           onClose={() => setQuick(null)}
         />
       )}

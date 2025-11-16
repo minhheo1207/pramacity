@@ -324,8 +324,10 @@ export default function HangMoi() {
                       onClick={() => {
                         try {
                           addToCart?.(p, 1);
-                        } catch {}
-                        toast(`Đã thêm “${p.name}” vào giỏ`);
+                          toast(`Đã thêm "${p.name}" vào giỏ`);
+                        } catch (err) {
+                          // Error đã được xử lý trong addToCart
+                        }
                       }}
                     >
                       <i className="ri-shopping-bag-3-line" />

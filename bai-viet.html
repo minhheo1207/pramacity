@@ -45,7 +45,7 @@
         <nav class="quick-nav">
           <a href="./bai-viet.html" class="quick-link">📰 Bài viết</a>
           <a href="#" class="quick-link">👤</a>
-          <a href="#" class="quick-link">🛒 <span class="badge">0</span></a>
+          <a href="#" class="quick-link" id="cartIcon">🛒 <span class="badge" id="cartBadge">0</span></a>
         </nav>
       </div>
     </header>
@@ -212,5 +212,265 @@
         <p class="footnote">© 2025 PharmaCity demo. All rights reserved.</p>
       </div>
     </footer>
+
+    <!-- CART SIDEBAR -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+      <div class="cart-header">
+        <h2>Giỏ hàng của bạn</h2>
+        <button class="cart-close-btn" id="cartClose">✕</button>
+      </div>
+      
+      <div class="cart-body" id="cartBody">
+        <!-- Empty cart message -->
+        <div class="cart-empty" id="cartEmpty">
+          <div class="cart-empty-icon">🛒</div>
+          <p>Giỏ hàng của bạn đang trống</p>
+          <a href="./index.html" class="btn">Tiếp tục mua sắm</a>
+        </div>
+        
+        <!-- Cart items list -->
+        <div class="cart-items-list" id="cartItems" style="display: none;"></div>
+      </div>
+      
+      <!-- Cart footer with total and checkout -->
+      <div class="cart-footer" id="cartFooter" style="display: none;">
+        <div class="cart-total">
+          <div class="cart-total-row">
+            <span>Tạm tính:</span>
+            <span id="cartSubtotal">0₫</span>
+          </div>
+          <div class="cart-total-row">
+            <span>Phí vận chuyển:</span>
+            <span id="cartShippingFee">Miễn phí</span>
+          </div>
+          <div class="cart-total-row cart-total-final">
+            <span>Tổng cộng:</span>
+            <span id="cartTotal">0₫</span>
+          </div>
+        </div>
+        <button class="btn btn--block btn-checkout" id="checkoutBtn">Thanh toán</button>
+        <a href="./index.html" class="cart-continue-link">← Tiếp tục mua sắm</a>
+      </div>
+    </div>
+
+    <script>
+      // Cart Management
+      const CART_STORAGE_KEY = 'pharmacity_cart';
+      
+      // Get cart from localStorage
+      function getCart() {
+        try {
+          const cart = localStorage.getItem(CART_STORAGE_KEY);
+          return cart ? JSON.parse(cart) : [];
+        } catch (e) {
+          console.error('Error reading cart:', e);
+          return [];
+        }
+      }
+      
+      // Save cart to localStorage
+      function saveCart(cart) {
+        try {
+          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+          updateCartBadge();
+          renderCart();
+        } catch (e) {
+          console.error('Error saving cart:', e);
+        }
+      }
+      
+      // Update cart badge number
+      function updateCartBadge() {
+        const cart = getCart();
+        const totalQty = cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+        const badge = document.getElementById('cartBadge');
+        if (badge) {
+          badge.textContent = totalQty;
+          badge.style.display = totalQty > 0 ? 'inline-block' : 'none';
+        }
+      }
+      
+      // Format price to Vietnamese currency
+      function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price) + '₫';
+      }
+      
+      // Render cart items
+      function renderCart() {
+        const cart = getCart();
+        const cartItems = document.getElementById('cartItems');
+        const cartEmpty = document.getElementById('cartEmpty');
+        const cartFooter = document.getElementById('cartFooter');
+        
+        if (!cart || cart.length === 0) {
+          // Show empty state
+          if (cartItems) cartItems.style.display = 'none';
+          if (cartEmpty) cartEmpty.style.display = 'flex';
+          if (cartFooter) cartFooter.style.display = 'none';
+          return;
+        }
+        
+        // Show cart items
+        if (cartEmpty) cartEmpty.style.display = 'none';
+        if (cartItems) cartItems.style.display = 'block';
+        if (cartFooter) cartFooter.style.display = 'block';
+        
+        // Render items
+        if (cartItems) {
+          cartItems.innerHTML = cart.map((item, index) => `
+            <div class="cart-item" data-index="${index}">
+              <div class="cart-item-image">
+                <img src="${item.image || 'https://via.placeholder.com/80'}" alt="${item.name || 'Sản phẩm'}" />
+              </div>
+              <div class="cart-item-info">
+                <h4 class="cart-item-name">${item.name || 'Sản phẩm'}</h4>
+                <div class="cart-item-price">${formatPrice(item.price || 0)}</div>
+                <div class="cart-item-controls">
+                  <div class="qty-wrapper">
+                    <button class="qty-btn qty-minus" data-index="${index}">−</button>
+                    <input type="number" class="qty-input" value="${item.qty || 1}" min="1" data-index="${index}">
+                    <button class="qty-btn qty-plus" data-index="${index}">+</button>
+                  </div>
+                  <button class="cart-item-delete" data-index="${index}">🗑️</button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+        
+        // Attach event listeners
+        attachCartEvents();
+        
+        // Calculate and update totals
+        const subtotal = cart.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || 1)), 0);
+        const total = subtotal;
+        
+        const subtotalEl = document.getElementById('cartSubtotal');
+        const totalEl = document.getElementById('cartTotal');
+        
+        if (subtotalEl) subtotalEl.textContent = formatPrice(subtotal);
+        if (totalEl) totalEl.textContent = formatPrice(total);
+      }
+      
+      // Attach event listeners to cart items
+      function attachCartEvents() {
+        const cartItems = document.getElementById('cartItems');
+        if (!cartItems) return;
+        
+        // Decrease quantity buttons
+        cartItems.querySelectorAll('.qty-minus').forEach(btn => {
+          btn.onclick = function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const cart = getCart();
+            if (cart[index]) {
+              cart[index].qty = Math.max(1, (cart[index].qty || 1) - 1);
+              saveCart(cart);
+            }
+          };
+        });
+        
+        // Increase quantity buttons
+        cartItems.querySelectorAll('.qty-plus').forEach(btn => {
+          btn.onclick = function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const cart = getCart();
+            if (cart[index]) {
+              cart[index].qty = (cart[index].qty || 1) + 1;
+              saveCart(cart);
+            }
+          };
+        });
+        
+        // Quantity input changes
+        cartItems.querySelectorAll('.qty-input').forEach(input => {
+          input.onchange = function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const cart = getCart();
+            if (cart[index]) {
+              cart[index].qty = Math.max(1, parseInt(this.value) || 1);
+              saveCart(cart);
+            }
+          };
+        });
+        
+        // Delete buttons
+        cartItems.querySelectorAll('.cart-item-delete').forEach(btn => {
+          btn.onclick = function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+          };
+        });
+      }
+      
+      // Open cart sidebar
+      function openCart() {
+        const sidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        if (sidebar) sidebar.classList.add('is-open');
+        if (overlay) overlay.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        renderCart();
+      }
+      
+      // Close cart sidebar
+      function closeCart() {
+        const sidebar = document.getElementById('cartSidebar');
+        const overlay = document.getElementById('cartOverlay');
+        if (sidebar) sidebar.classList.remove('is-open');
+        if (overlay) overlay.classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+      
+      // Initialize cart functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        // Cart icon click
+        const cartIcon = document.getElementById('cartIcon');
+        if (cartIcon) {
+          cartIcon.addEventListener('click', function(e) {
+            e.preventDefault();
+            openCart();
+          });
+        }
+        
+        // Close button click
+        const cartClose = document.getElementById('cartClose');
+        if (cartClose) {
+          cartClose.addEventListener('click', closeCart);
+        }
+        
+        // Overlay click to close
+        const cartOverlay = document.getElementById('cartOverlay');
+        if (cartOverlay) {
+          cartOverlay.addEventListener('click', closeCart);
+        }
+        
+        // Checkout button
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+          checkoutBtn.addEventListener('click', function() {
+            const cart = getCart();
+            if (cart.length === 0) {
+              alert('Giỏ hàng của bạn đang trống!');
+              return;
+            }
+            alert('Chức năng thanh toán sẽ được tích hợp sau!');
+          });
+        }
+        
+        // Initialize badge
+        updateCartBadge();
+      });
+      
+      // Listen for cart updates from other pages/tabs
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'pharmacity_cart') {
+          updateCartBadge();
+          renderCart();
+        }
+      });
+    </script>
   </body>
 </html>

@@ -153,43 +153,51 @@
   gap: 10px;
 }
 
-/* Nút chung */
+/* Nút chung - Sử dụng design tokens */
 .card.product .btn,
 .card.product .btn.btn--ghost {
   flex: 1;
-  height: 40px;
-  border-radius: 12px;
+  height: var(--btn-height-md);
+  border-radius: var(--btn-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--btn-font-size-sm);
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  padding: 0 10px;
-  transition: 0.18s ease;
+  padding: 0 var(--space-md);
+  transition: all 0.2s ease;
 }
 
-/* Thêm vào giỏ – xanh đậm */
+/* Thêm vào giỏ – màu chủ đạo */
 .card.product .btn {
-  background: #2563eb;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: #ffffff;
   border: none;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+  box-shadow: var(--shadow-primary);
 }
 
 /* Chi tiết – trắng viền xanh */
 .card.product .btn.btn--ghost {
-  background: #ffffff;
-  color: #1e3a8a;
-  border: 2px solid #2563eb;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  background: var(--white);
+  color: var(--primary);
+  border: 2px solid var(--primary-border);
+  box-shadow: var(--shadow-sm);
 }
 
-.card.product .btn:hover,
+.card.product .btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: var(--shadow-primary-hover);
+}
+
 .card.product .btn.btn--ghost:hover {
   transform: translateY(-1px);
-  filter: brightness(0.97);
+  background: var(--primary-bg);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
 }
 
 /* ================== PHÂN TRANG ================== */

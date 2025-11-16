@@ -240,7 +240,16 @@ export default function BanChay() {
                   </div>
 
                   <div className="row">
-                    <button className="btn" onClick={() => addToCart(p, 1)}>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        try {
+                          addToCart(p, 1);
+                        } catch (err) {
+                          // Error đã được xử lý trong addToCart
+                        }
+                      }}
+                    >
                       Thêm vào giỏ
                     </button>
                     <Link className="btn btn--ghost" to={`/san-pham/${p.id}`}>
