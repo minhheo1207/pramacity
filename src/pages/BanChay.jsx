@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageBar from "../components/PageBar";
 import Frame from "../components/Frame";
+import QuickViewModal from "../components/QuickViewModal";
 import {
   PRODUCTS,
   CART_KEY,
@@ -10,6 +11,7 @@ import {
   dispatchCartUpdated,
 } from "../services/products";
 import "../assets/css/ban-chay.css";
+import "../assets/css/thuoc.css";
 const CATS = [
   "Tất cả",
   "Vitamin",
@@ -18,7 +20,7 @@ const CATS = [
   "Khẩu trang",
 ];
 const BRANDS = ["PharmaCity", "MedPro", "SunCare", "VitaPlus"];
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 export default function BanChay() {
   const nav = useNavigate();
@@ -31,6 +33,8 @@ export default function BanChay() {
   const [ratingMin, setRatingMin] = useState(0);
   const [sort, setSort] = useState("soldDesc");
   const [page, setPage] = useState(1);
+  const [quick, setQuick] = useState(null);
+  const [quickTab, setQuickTab] = useState("tong-quan");
 
   useEffect(() => {
     dispatchCartUpdated();
@@ -205,43 +209,65 @@ export default function BanChay() {
             </div>
           </div>
 
-          <div className="grid grid--product">
+          <div className="t-grid">
             {pageList.map((p) => (
-              <article className="card product" key={p.id}>
+              <article className="t-card" key={p.id}>
                 <div
-                  className="card__media"
+                  className="t-thumb"
                   onClick={() => nav(`/san-pham/${p.id}`)}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    cursor: "pointer",
+                    backgroundImage: `url(${p.cover || p.img})`,
+                  }}
                 >
-                  <img src={p.cover || p.img} alt={p.name} loading="lazy" />
-                  {p.sale && <span className="badge-sale">{p.sale}</span>}
+                  {p.sale && (
+                    <span className="t-badge t-badge--sale">{p.sale}</span>
+                  )}
+                  <span className="t-badge t-badge--tag">{p.cat}</span>
                 </div>
 
-                <div className="card__body">
-                  <h3 className="card__title">
-                    <Link to={`/san-pham/${p.id}`}>{p.name}</Link>
+                <div className="t-body">
+                  <h3 className="t-title" title={p.name}>
+                    <Link
+                      to={`/san-pham/${p.id}`}
+                      style={{
+                        color: "inherit",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {p.name}
+                    </Link>
                   </h3>
 
-                  <div className="rating">
-                    <span className="stars">{stars(p.rating)}</span>
+                  <div className="t-price">
+                    <b>{fmt(p.price)}</b>
+                    {p.old && <s>{fmt(p.old)}</s>}
+                  </div>
+
+                  <div className="t-meta">
+                    <span className="rate">
+                      <i className="ri-star-fill" /> {p.rating.toFixed(1)}
+                    </span>
                     <span className="sold">
-                      {p.sold.toLocaleString()} đã bán
+                      Đã bán {p.sold.toLocaleString("vi-VN")}
                     </span>
                   </div>
 
-                  <div className="price-row">
-                    {p.old && <span className="price--old">{fmt(p.old)}</span>}
-                    <span className="price">{fmt(p.price)}</span>
+                  <div className="t-hot">
+                    <span
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          Math.round((p.sold / 5000) * 100)
+                        )}%`,
+                      }}
+                    />
                   </div>
 
-                  <div className="meta-row">
-                    <span className="pill">{p.cat}</span>
-                    <span className="pill">{p.brand}</span>
-                  </div>
-
-                  <div className="row">
+                  <div className="t-actions">
                     <button
-                      className="btn"
+                      className="btn btn--buy"
                       onClick={() => {
                         try {
                           addToCart(p, 1);
@@ -250,10 +276,28 @@ export default function BanChay() {
                         }
                       }}
                     >
-                      Thêm vào giỏ
+                      <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
                     </button>
-                    <Link className="btn btn--ghost" to={`/san-pham/${p.id}`}>
-                      Chi tiết
+                    <button
+                      className="btn btn--ghost"
+                      onClick={() => {
+                        setQuickTab("tong-quan");
+                        setQuick(p);
+                      }}
+                    >
+                      <i className="ri-eye-line" /> Xem nhanh
+                    </button>
+                    <Link
+                      className="btn btn--ghost"
+                      to={`/san-pham/${p.id}`}
+                      style={{
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <i className="ri-file-list-line" /> Chi tiết
                     </Link>
                   </div>
                 </div>
@@ -283,6 +327,29 @@ export default function BanChay() {
           </div>
         </section>
       </div>
+
+      {quick && (
+        <QuickViewModal
+          data={{
+            ...quick,
+            discount: quick.sale
+              ? parseInt(quick.sale.replace(/[^0-9]/g, ""))
+              : 0,
+            tag: quick.cat || "",
+            oldPrice: quick.old || quick.price,
+          }}
+          initialTab={quickTab}
+          onAdd={(product) => {
+            try {
+              addToCart(product, 1);
+              setQuick(null);
+            } catch (err) {
+              // Error đã được xử lý trong addToCart
+            }
+          }}
+          onClose={() => setQuick(null)}
+        />
+      )}
     </main>
   );
 }

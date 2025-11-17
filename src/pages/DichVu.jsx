@@ -181,8 +181,7 @@ export default function DichVu() {
               Chăm sóc <span>sức khỏe</span> từ những việc nhỏ
             </h1>
             <p>
-              Đo huyết áp, đường huyết, soi da, tư vấn dinh dưỡng &amp; giao
-              thuốc trong 2 giờ. Đặt lịch ngay để được phục vụ tốt nhất.
+              Đo huyết áp, đường huyết, soi da, tư vấn dinh dưỡng &amp;giao thuốc trong 2 giờ. Đặt lịch ngay để được phục vụ tốt nhất.
             </p>
             <div className="hero-cta">
               <a className="btn" href="#bang-gia">
@@ -347,8 +346,7 @@ export default function DichVu() {
             <div>
               <h4>1) Đặt lịch</h4>
               <p>
-                Chọn dịch vụ &amp; thời gian phù hợp. Nhân viên sẽ xác nhận
-                ngay.
+                Chọn dịch vụ &amp;thời gian phù hợp. Nhân viên sẽ xác nhận ngay.
               </p>
             </div>
           </li>
@@ -357,7 +355,7 @@ export default function DichVu() {
             <div>
               <h4>2) Sàng lọc – chuẩn bị</h4>
               <p>
-                Trao đổi tình trạng, tiền sử – chuẩn bị dụng cụ &amp; phòng đo.
+                Trao đổi tình trạng, tiền sử – chuẩn bị dụng cụ &amp;phòng đo.
               </p>
             </div>
           </li>
@@ -365,7 +363,7 @@ export default function DichVu() {
             <span className="dot"></span>
             <div>
               <h4>3) Thực hiện – tư vấn</h4>
-              <p>Thực hiện dịch vụ &amp; tư vấn cá nhân hóa theo kết quả.</p>
+              <p>Thực hiện dịch vụ &amp;tư vấn cá nhân hóa theo kết quả.</p>
             </div>
           </li>
           <li>
@@ -405,8 +403,7 @@ export default function DichVu() {
         <h2>Câu hỏi thường gặp</h2>
         <details open>
           <summary>
-            <i className="ri-question-line" /> Có cần nhịn ăn khi đo đường
-            huyết?
+            <i className="ri-question-line" />Có cần nhịn ăn khi đo đường huyết?
           </summary>
           <p>
             Nếu đo lúc đói để đánh giá fasting glucose, bạn nên nhịn ăn ít nhất
@@ -415,8 +412,7 @@ export default function DichVu() {
         </details>
         <details>
           <summary>
-            <i className="ri-question-line" /> Dịch vụ soi da có phù hợp cho da
-            nhạy cảm?
+            <i className="ri-question-line" />Dịch vụ soi da có phù hợp cho da nhạy cảm?
           </summary>
           <p>
             Thiết bị soi da chỉ chụp/chiếu ánh sáng, không xâm lấn – an toàn cho
@@ -425,7 +421,7 @@ export default function DichVu() {
         </details>
         <details>
           <summary>
-            <i className="ri-question-line" /> Đặt lịch có hủy được không?
+            <i className="ri-question-line" />Đặt lịch có hủy được không?
           </summary>
           <p>Bạn có thể hủy/đổi lịch miễn phí trước giờ hẹn 2 tiếng.</p>
         </details>
@@ -439,7 +435,7 @@ export default function DichVu() {
             <p>Dược sĩ trực 24/7 sẽ gọi lại trong 5 phút.</p>
           </div>
           <Link className="btn btn-big" to="/dat-lich">
-            <i className="ri-phone-line" /> Yêu cầu gọi lại
+            <i className="ri-phone-line" />Yêu cầu gọi lại
           </Link>
         </div>
       </section>
@@ -471,14 +467,13 @@ export default function DichVu() {
               <p>{drawer.desc}</p>
               <ul className="sv-ul">
                 <li>
-                  <i className="ri-check-line" /> Quy trình an toàn – chuẩn
+                  <i className="ri-check-line" />Quy trình an toàn – chuẩn
                 </li>
                 <li>
-                  <i className="ri-check-line" /> Kết quả trong{" "}
-                  {drawer.duration}
+                  <i className="ri-check-line" />Kết quả trong {drawer.duration}
                 </li>
                 <li>
-                  <i className="ri-check-line" /> Ưu đãi khi đặt online
+                  <i className="ri-check-line" />Ưu đãi khi đặt online
                 </li>
               </ul>
               <div style={{ display: "flex", gap: 10, marginTop: 8 }}>

@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "../layouts/Layout"; // đúng path: src/layouts/Layout.jsx
+import ScrollToTop from "../components/ScrollToTop";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -13,17 +14,18 @@ import DichVu from "../pages/DichVu";
 import KhuyenMai from "../pages/KhuyenMai";
 import ProductDetail from "../pages/ProductDetail";
 import BaiVietDetail from "../pages/BaiVietDetail";
-import NewProductDetail from "../pages/NewProductDetail";
 import DatLich from "../pages/DatLich";
 import Booking from "../pages/Booking";
 import Thuoc from "../pages/Thuoc";
 import GioHang from "../pages/GioHang";
+import SearchResults from "../pages/SearchResults";
 import AdminDashboard from "../pages/AdminDashboard";
 import EmployeeChat from "../pages/EmployeeChat";
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Tất cả route con render bên trong Layout */}
         <Route element={<Layout />}>
@@ -39,13 +41,13 @@ export default function AppRouter() {
           <Route path="/hang-moi" element={<HangMoi />} />
           <Route path="/dich-vu" element={<DichVu />} />
           <Route path="/khuyen-mai" element={<KhuyenMai />} />
+          <Route path="/search" element={<SearchResults />} />
 
           {/* Chi tiết */}
           <Route path="/san-pham/:id" element={<ProductDetail />} />
           <Route path="/bai-viet/:id" element={<BaiVietDetail />} />
-          <Route path="/hang-moi/:id" element={<NewProductDetail />} />
           <Route path="/dat-lich" element={<DatLich />} />
-          <Route path="/dat-lich" element={<Booking />} />
+          <Route path="/booking" element={<Booking />} />
           <Route path="/thuoc" element={<Thuoc />} />
           <Route path="/gio-hang" element={<GioHang />} />
 

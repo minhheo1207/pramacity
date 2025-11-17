@@ -2,122 +2,26 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import PageBar from "../components/PageBar";
+import QuickViewModal from "../components/QuickViewModal";
 import { addToCart } from "../services/products";
+import { NEW_PRODUCTS as NEW_PRODUCTS_DATA } from "../data/newProducts";
 import "../assets/css/hangmoi.css";
 
-const NEW_PRODUCTS = [
-  {
-    id: "1",
-    name: "Vitamin C 1000mg Nature’s Way",
-    price: 195000,
-    oldPrice: 230000,
-    cover: "/hangmoi/vitaminC.png",
-    badge: "new",
-    brand: "Nature’s Way",
-    rating: 4.7,
-    sold: 3100,
-    category: "health",
-  },
-  {
-    id: "2",
-    name: "Kem chống nắng La Roche-Posay SPF50+",
-    price: 420000,
-    oldPrice: 480000,
-    cover: "/hangmoi/kemchongnang.png",
-    badge: "hot",
-    brand: "La Roche-Posay",
-    rating: 4.9,
-    sold: 5200,
-    category: "skin",
-  },
-  {
-    id: "3",
-    name: "Probiotic Enterogermina 5ml x 10 ống",
-    price: 145000,
-    cover: "/hangmoi/ProbioticEnterogermina.png",
-    badge: "new",
-    brand: "Enterogermina",
-    rating: 4.6,
-    sold: 2100,
-    category: "health",
-  },
-  {
-    id: "4",
-    name: "Viên uống bổ não Ginkgo Biloba 120mg",
-    price: 185000,
-    oldPrice: 210000,
-    cover: "/hangmoi/bonao.png",
-    brand: "Herbal Lab",
-    rating: 4.5,
-    sold: 1750,
-    category: "health",
-  },
-  {
-    id: "5",
-    name: "Siro ho Prospan Kid 100ml",
-    price: 99000,
-    cover: "/hangmoi/siro.png",
-    brand: "Prospan",
-    rating: 4.8,
-    sold: 4320,
-    category: "kids",
-  },
-  {
-    id: "6",
-    name: "Collagen nước DHC 50ml x 10 chai",
-    price: 375000,
-    oldPrice: 420000,
-    cover: "/hangmoi/Collagen.png",
-    badge: "new",
-    brand: "DHC",
-    rating: 4.8,
-    sold: 2890,
-    category: "skin",
-  },
-  {
-    id: "7",
-    name: "Sữa rửa mặt Cerave Foaming Cleanser 236ml",
-    price: 285000,
-    cover: "/hangmoi/suaruamat.png",
-    badge: "hot",
-    brand: "CeraVe",
-    rating: 4.9,
-    sold: 6120,
-    category: "skin",
-  },
-  {
-    id: "8",
-    name: "Omega-3 Fish Oil 1000mg",
-    price: 210000,
-    oldPrice: 245000,
-    cover: "/hangmoi/Omega3.png",
-    brand: "Healthy Care",
-    rating: 4.6,
-    sold: 3310,
-    category: "health",
-  },
-  {
-    id: "p-09",
-    name: "Sữa bột Optimum Gold 4 cho bé 2–6 tuổi 850g",
-    price: 495000,
-    cover: "/hangmoi/suaobot.png",
-    badge: "new",
-    brand: "Vinamilk",
-    rating: 4.7,
-    sold: 1980,
-    category: "kids",
-  },
-  {
-    id: "p-10",
-    name: "Khẩu trang y tế 4 lớp kháng khuẩn hộp 50 cái",
-    price: 39000,
-    cover: "/hangmoi/khautrang.png",
-    brand: "ProCare",
-    rating: 4.5,
-    sold: 8450,
-    category: "health",
-  },
-];
+// Map category từ cat để hiển thị
+const CATEGORY_MAP = {
+  "Vitamin/ khoáng": "health",
+  "Chăm sóc da": "skin",
+  "Cho bé": "kids",
+  "Khẩu trang": "health", // Khẩu trang thuộc nhóm sức khỏe
+};
+
+// Convert data từ newProducts.js sang format cho HangMoi
+const NEW_PRODUCTS = NEW_PRODUCTS_DATA.map((p) => ({
+  ...p,
+  oldPrice: p.old,
+  category: CATEGORY_MAP[p.cat] || "health",
+  badge: p.sale ? (p.sold > 5000 ? "hot" : "new") : null,
+}));
 
 const TAGS = [
   { key: "all", label: "Tất cả" },
@@ -126,11 +30,27 @@ const TAGS = [
   { key: "kids", label: "Cho bé" },
 ];
 
+const CATEGORY_LABELS = {
+  health: "Vitamin/ khoáng",
+  skin: "Chăm sóc da",
+  kids: "Cho bé",
+};
+
+// Map ngược lại từ category về cat để hiển thị label đúng
+const getCategoryLabel = (product) => {
+  // Ưu tiên dùng cat từ data gốc
+  if (product.cat) return product.cat;
+  // Nếu không có cat, dùng category để map
+  return CATEGORY_LABELS[product.category] || product.category || "Sản phẩm";
+};
+
 const fmt = (n) => n.toLocaleString("vi-VN") + "₫";
-const offPercent = (p) =>
-  p.oldPrice && p.oldPrice > p.price
-    ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
+const offPercent = (p) => {
+  const oldPrice = p.oldPrice || p.old;
+  return oldPrice && oldPrice > p.price
+    ? Math.round(((oldPrice - p.price) / oldPrice) * 100)
     : 0;
+};
 
 // Toast đơn giản
 function toast(msg) {
@@ -155,7 +75,9 @@ export default function HangMoi() {
   const sliderRef = useRef(null);
   const [activeTag, setActiveTag] = useState("all");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 5;
+  const [quick, setQuick] = useState(null);
+  const [quickTab, setQuickTab] = useState("tong-quan");
+  const PAGE_SIZE = 8;
 
   const scrollBy = (dx) => {
     if (!sliderRef.current) return;
@@ -248,79 +170,71 @@ export default function HangMoi() {
       <div className="container">
         <div className="np-grid" ref={sliderRef}>
           {visibleProducts.map((p) => {
-            const imgSrc = p.cover || p.img; // fallback nếu sau này bạn còn dùng img
-            const webpSrc =
-              imgSrc &&
-              `${import.meta.env.BASE_URL}${imgSrc.replace(
-                /\.(png|jpg|jpeg)$/i,
-                ".webp"
-              )}`;
-            const fullSrc = imgSrc && `${import.meta.env.BASE_URL}${imgSrc}`;
+            const discountPercent = offPercent(p);
+            // Lấy category label từ cat nếu có, nếu không thì dùng category
+            const categoryLabel = getCategoryLabel(p);
+            const progressValue = Math.min(100, (p.sold / 10000) * 100); // Progress based on sales
 
             return (
               <article className="np-card" key={p.id}>
                 {/* media */}
-                <Link to={`/san-pham/${p.id}`} className="np-card__media">
-                  {p.badge && (
-                    <span
-                      className={
-                        "np-badge " +
-                        (p.badge === "hot" ? "np-badge--hot" : "np-badge--new")
-                      }
-                    >
-                      {p.badge === "hot" ? "Hot" : "Mới"}
-                    </span>
-                  )}
-                  {offPercent(p) > 0 && (
-                    <span className="np-badge np-badge--sale">
-                      -{offPercent(p)}%
-                    </span>
-                  )}
+                <div className="np-card__media-wrapper">
+                  <Link to={`/san-pham/${p.id}`} className="np-card__media">
+                    {discountPercent > 0 && (
+                      <span className="np-badge np-badge--sale">
+                        -{discountPercent}%
+                      </span>
+                    )}
 
-                  <img
-                    src={p.cover}
-                    alt={p.name}
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.src = "/img/placeholder.jpg"; // hoặc bỏ hẳn dòng này
-                    }}
-                  />
-                </Link>
+                    <img
+                      src={p.cover || p.img}
+                      alt={p.name}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = "/img/placeholder.jpg";
+                      }}
+                    />
+                  </Link>
+
+                  {/* Category label */}
+                  <span className="np-category-label">{categoryLabel}</span>
+                </div>
 
                 {/* body */}
                 <div className="np-card__body">
-                  <div className="np-meta">
-                    <span className="np-meta-brand">{p.brand}</span>
-                    <span className="np-meta-rating">
-                      <i className="ri-star-fill" /> {p.rating.toFixed(1)}
-                      <span className="np-meta-muted">
-                        {" "}
-                        • {p.sold.toLocaleString()} đã bán
-                      </span>
-                    </span>
-                  </div>
-
                   <h3 className="np-title">
                     <Link to={`/san-pham/${p.id}`}>{p.name}</Link>
                   </h3>
 
                   <div className="np-price-row">
                     <span className="np-price">{fmt(p.price)}</span>
-                    {p.oldPrice && (
-                      <span className="np-price-old">{fmt(p.oldPrice)}</span>
+                    {(p.oldPrice || p.old) && (
+                      <span className="np-price-old">
+                        {fmt(p.oldPrice || p.old)}
+                      </span>
                     )}
                   </div>
 
+                  <div className="np-rating-row">
+                    <span className="np-rating">
+                      <i className="ri-star-fill" /> {p.rating.toFixed(1)}
+                    </span>
+                    <span className="np-sold">
+                      Đã bán {p.sold.toLocaleString("vi-VN")}
+                    </span>
+                  </div>
+
+                  <div className="np-progress">
+                    <div
+                      className="np-progress-bar"
+                      style={{ width: `${progressValue}%` }}
+                    ></div>
+                  </div>
+
                   <div className="np-actions">
-                    <Link
-                      className="btn btn--ghost sm"
-                      to={`/san-pham/${p.id}`}
-                    >
-                      Chi tiết
-                    </Link>
                     <button
                       type="button"
-                      className="btn sm btn-main"
+                      className="np-btn np-btn--add-cart"
                       onClick={() => {
                         try {
                           addToCart?.(p, 1);
@@ -330,9 +244,38 @@ export default function HangMoi() {
                         }
                       }}
                     >
-                      <i className="ri-shopping-bag-3-line" />
-                      <span>Thêm giỏ</span>
+                      <i className="ri-shopping-cart-line" />
+                      <span>Thêm vào giỏ</span>
                     </button>
+                    <div className="np-actions-row">
+                      <button
+                        type="button"
+                        className="np-btn np-btn--quick-view"
+                        onClick={() => {
+                          setQuickTab("tong-quan");
+                          // Convert product format to match QuickViewModal expected format
+                          const quickViewData = {
+                            ...p,
+                            discount: discountPercent,
+                            tag: categoryLabel,
+                            img: p.cover || p.img,
+                            cover: p.cover || p.img,
+                            oldPrice: p.oldPrice || p.old,
+                          };
+                          setQuick(quickViewData);
+                        }}
+                      >
+                        <i className="ri-eye-line" />
+                        <span>Xem nhanh</span>
+                      </button>
+                      <Link
+                        to={`/san-pham/${p.id}`}
+                        className="np-btn np-btn--details"
+                      >
+                        <i className="ri-file-list-line" />
+                        <span>Chi tiết</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -361,6 +304,24 @@ export default function HangMoi() {
           </div>
         )}
       </div>
+
+      {/* Quick View Modal */}
+      {quick && (
+        <QuickViewModal
+          data={quick}
+          initialTab={quickTab}
+          onAdd={(product) => {
+            try {
+              addToCart?.(product, 1);
+              toast(`Đã thêm "${product.name}" vào giỏ`);
+              setQuick(null);
+            } catch (err) {
+              // Error đã được xử lý trong addToCart
+            }
+          }}
+          onClose={() => setQuick(null)}
+        />
+      )}
     </main>
   );
 }

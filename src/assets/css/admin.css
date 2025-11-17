@@ -915,7 +915,8 @@
 
 .admin-modal__body .form-group input,
 .admin-modal__body .form-group select,
-.admin-modal__body .form-group textarea {
+.admin-modal__body .form-group textarea,
+.admin-modal__body .form-group .form-select {
   width: 100%;
   padding: var(--space-md);
   border: 2px solid var(--line);
@@ -929,10 +930,33 @@
 
 .admin-modal__body .form-group input:focus,
 .admin-modal__body .form-group select:focus,
-.admin-modal__body .form-group textarea:focus {
+.admin-modal__body .form-group textarea:focus,
+.admin-modal__body .form-group .form-select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-bg);
+}
+
+.admin-modal__body .form-group .form-select {
+  background-color: var(--white);
+  color: var(--text);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-md) center;
+  padding-right: calc(var(--space-md) + 20px);
+}
+
+.admin-modal__body .form-group .form-select:disabled {
+  background-color: var(--bg-light);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.admin-modal__body .form-group .form-select option {
+  padding: var(--space-sm);
 }
 
 .admin-modal__body .form-group input::placeholder,

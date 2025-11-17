@@ -1,5 +1,6 @@
 // src/pages/Thuoc.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import PageBar from "../components/PageBar";
 import QuickViewModal from "../components/QuickViewModal";
 import { addToCart } from "../services/products";
@@ -433,7 +434,16 @@ export default function Thuoc() {
 
                   <div className="t-body">
                     <h3 className="t-title" title={p.name}>
-                      {p.name}
+                      <Link 
+                        to={`/san-pham/${p.id}`}
+                        style={{ 
+                          color: "inherit", 
+                          textDecoration: "none",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {p.name}
+                      </Link>
                     </h3>
 
                     <div className="t-price">
@@ -490,15 +500,18 @@ export default function Thuoc() {
                       >
                         <i className="ri-eye-line" /> Xem nhanh
                       </button>
-                      <button
+                      <Link
                         className="btn btn--ghost"
-                        onClick={() => {
-                          setQuickTab("chi-tiet");
-                          setQuick(p);
+                        to={`/san-pham/${p.id}`}
+                        style={{ 
+                          textDecoration: "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center"
                         }}
                       >
                         <i className="ri-file-list-line" /> Chi tiết
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </article>

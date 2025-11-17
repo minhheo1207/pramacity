@@ -4,6 +4,7 @@
 .thuoc.light {
   background: #f7f9fc;
   color: #0b1b3a;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   -webkit-font-smoothing: antialiased;
   padding-bottom: var(--space-4xl);
   min-height: 100vh;
@@ -218,6 +219,7 @@
   background: transparent;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   min-width: 0;
 }
 
@@ -257,6 +259,7 @@
   text-transform: uppercase;
   color: #6b7a91;
   letter-spacing: 0.5px;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
 }
 
 .t-pills {
@@ -288,6 +291,7 @@
   font-size: var(--font-size-xs);
   font-weight: 700;
   line-height: var(--line-height-normal);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   cursor: pointer;
   text-align: center;
   transition: all 0.2s ease;
@@ -336,6 +340,7 @@
   font-size: var(--font-size-xs);
   font-weight: 800;
   line-height: var(--line-height-normal);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -406,8 +411,8 @@
 .t-grid {
   display: grid;
   gap: var(--space-lg);
-  grid-template-columns: repeat(auto-fit, minmax(240px, 260px));
-  justify-content: center; /* căn giữa các card */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  justify-content: start;
 }
 
 /* CARD */
@@ -423,6 +428,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-height: fit-content;
   width: 100%;
+  max-width: 100%;
 }
 
 
@@ -485,6 +491,7 @@
   min-height: fit-content;
   flex: 1;
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  overflow: hidden;
 }
 
 .t-title {
@@ -559,17 +566,20 @@
 
 .t-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-sm);
   margin-top: 12px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .t-actions .btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   border-radius: var(--btn-radius);
-  padding: 0 var(--space-md);
-  font-size: var(--btn-font-size-sm);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  line-height: 1;
+  line-height: var(--line-height-normal);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -579,9 +589,10 @@
   background: var(--white);
   color: var(--primary);
   transition: all 0.2s ease;
-  height: var(--btn-height-md);
+  min-height: var(--btn-height-md);
   white-space: nowrap;
   word-break: keep-all;
+  box-sizing: border-box;
 }
 
 .t-actions .btn--buy {
@@ -589,6 +600,17 @@
   color: #ffffff;
   border-color: transparent;
   box-shadow: var(--shadow-primary);
+  flex: 1 1 100%;
+  min-width: 100%;
+  margin-bottom: var(--space-xs);
+}
+
+.t-actions .btn--ghost {
+  flex: 1 1 calc(50% - var(--space-sm) / 2);
+  min-width: calc(50% - var(--space-sm) / 2);
+  max-width: calc(50% - var(--space-sm) / 2);
+  padding: var(--space-sm) var(--space-sm);
+  font-size: var(--font-size-xs);
 }
 
 .t-actions .btn--buy:hover {
@@ -713,7 +735,17 @@
   .t-page-btn {
     min-width: 120px;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: var(--font-size-xs);
+  }
+
+  .t-actions .btn--ghost {
+    font-size: var(--font-size-xs);
+    padding: var(--space-xs) var(--space-sm);
+    gap: 4px;
+  }
+
+  .t-actions .btn--ghost i {
+    font-size: var(--font-size-sm);
   }
 }
 /* ===== PAGING KHUYẾN MÃI (giống Thuốc) ===== */
@@ -723,6 +755,8 @@
   justify-content: center;
   align-items: center;
   gap: 12px;
+  max-width: 1160px;
+  padding: 0 var(--space-lg);
 }
 
 .kv-page-btn {
@@ -730,7 +764,7 @@
   border-radius: 999px;
   border: none;
   padding: 10px 18px;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 800;
   cursor: pointer;
   background: #1d309b;
@@ -762,7 +796,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: #1d309b;
 }
 
@@ -770,6 +804,6 @@
   .kv-page-btn {
     min-width: 120px;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: var(--font-size-xs);
   }
 }

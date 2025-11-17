@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import PageBar from "../components/PageBar";
 import "../assets/css/khuyenmai.css";
+import "../assets/css/thuoc.css";
 import QuickViewModal from "../components/QuickViewModal";
 import { addToCart } from "../services/products";
 
@@ -122,72 +124,210 @@ const PRODUCTS = [
   {
     id: "p1",
     name: "Serum Vitamin C 10%",
+    img: "/khuyenmai/serumC.png",
     cover: "/khuyenmai/serumC.png",
     price: 159000,
+    old: 259000,
     oldPrice: 259000,
+    sale: "-39%",
     discount: 39,
     rating: 4.7,
     sold: 320,
     tag: "Chăm sóc da",
+    cat: "Chăm sóc da",
+    brand: "La Roche-Posay",
+    desc: "Serum Vitamin C 10% giúp làm sáng da, giảm thâm nám, chống oxy hóa. Phù hợp cho da thường đến da dầu. Sử dụng buổi sáng sau bước làm sạch.",
   },
   {
     id: "p2",
     name: "Vitamin Tổng hợp A–Z (120v)",
     img: "/khuyenmai/vitaminA-Z.png",
+    cover: "/khuyenmai/vitaminA-Z.png",
     price: 199000,
+    old: 329000,
     oldPrice: 329000,
+    sale: "-40%",
     discount: 40,
     rating: 4.8,
     sold: 812,
     tag: "Dinh dưỡng",
+    cat: "Dinh dưỡng",
+    brand: "Nature Made",
+    desc: "Vitamin tổng hợp A-Z cung cấp đầy đủ các vitamin và khoáng chất thiết yếu cho cơ thể. Hỗ trợ tăng cường sức đề kháng, cải thiện sức khỏe tổng thể. Dùng 1 viên mỗi ngày sau bữa ăn.",
   },
   {
     id: "p3",
     name: "Nhiệt kế điện tử",
     img: "/khuyenmai/nhietketdientu.png",
+    cover: "/khuyenmai/nhietketdientu.png",
     price: 49000,
+    old: 129000,
     oldPrice: 129000,
+    sale: "-62%",
     discount: 62,
     rating: 4.5,
     sold: 1060,
     tag: "Thiết bị y tế",
+    cat: "Thiết bị y tế",
+    brand: "SIKA",
+    desc: "Nhiệt kế điện tử đo nhiệt độ nhanh chóng và chính xác trong 10 giây. Màn hình LCD dễ đọc, có cảnh báo sốt. An toàn cho trẻ em và người lớn.",
   },
   {
     id: "p4",
     name: "Viên kẽm 15mg (60v)",
     img: "/khuyenmai/kem.png",
+    cover: "/khuyenmai/kem.png",
     price: 89000,
+    old: 149000,
     oldPrice: 149000,
+    sale: "-40%",
     discount: 40,
     rating: 4.6,
     sold: 540,
     tag: "Dinh dưỡng",
+    cat: "Dinh dưỡng",
+    brand: "OstroVit",
+    desc: "Viên kẽm 15mg hỗ trợ tăng cường miễn dịch, cải thiện sức khỏe da và tóc. Phù hợp cho người thiếu kẽm, người hay ốm vặt. Uống 1 viên mỗi ngày.",
   },
   {
     id: "p5",
     name: "Sữa rửa mặt dịu nhẹ",
     img: "/khuyenmai/suaruamat.png",
+    cover: "/khuyenmai/suaruamat.png",
     price: 119000,
+    old: 189000,
     oldPrice: 189000,
+    sale: "-37%",
     discount: 37,
     rating: 4.9,
     sold: 980,
     tag: "Chăm sóc da",
+    cat: "Chăm sóc da",
+    brand: "Cetaphil",
+    desc: "Sữa rửa mặt dịu nhẹ không chứa xà phòng, phù hợp cho da nhạy cảm. Làm sạch sâu mà không gây khô da. Sử dụng sáng và tối.",
   },
   {
     id: "p6",
     name: "Máy đo huyết áp cổ tay",
     img: "/khuyenmai/maydohuyetapcotay.png",
+    cover: "/khuyenmai/maydohuyetapcotay.png",
     price: 399000,
+    old: 590000,
     oldPrice: 590000,
+    sale: "-32%",
     discount: 32,
     rating: 4.4,
     sold: 265,
     tag: "Thiết bị y tế",
+    cat: "Thiết bị y tế",
+    brand: "OMRON",
+    desc: "Máy đo huyết áp cổ tay tự động, dễ sử dụng. Màn hình LCD lớn, bộ nhớ lưu 60 kết quả. Phù hợp cho gia đình, người cao tuổi.",
+  },
+  {
+    id: "p7",
+    name: "Omega-3 Fish Oil 1000mg",
+    img: "/khuyenmai/VitaminC.png",
+    cover: "/khuyenmai/VitaminC.png",
+    price: 210000,
+    old: 280000,
+    oldPrice: 280000,
+    sale: "-25%",
+    discount: 25,
+    rating: 4.7,
+    sold: 450,
+    tag: "Dinh dưỡng",
+    cat: "Dinh dưỡng",
+    brand: "Nature's Bounty",
+    desc: "Omega-3 Fish Oil 1000mg hỗ trợ sức khỏe tim mạch, não bộ và mắt. Chiết xuất từ cá biển sâu, không mùi tanh. Uống 1-2 viên mỗi ngày.",
+  },
+  {
+    id: "p8",
+    name: "Kem dưỡng ẩm ban đêm",
+    img: "/khuyenmai/chamsoda.png",
+    cover: "/khuyenmai/chamsoda.png",
+    price: 185000,
+    old: 245000,
+    oldPrice: 245000,
+    sale: "-24%",
+    discount: 24,
+    rating: 4.8,
+    sold: 620,
+    tag: "Chăm sóc da",
+    cat: "Chăm sóc da",
+    brand: "Neutrogena",
+    desc: "Kem dưỡng ẩm ban đêm phục hồi và nuôi dưỡng da trong khi ngủ. Công thức không gây mụn, phù hợp mọi loại da. Thoa đều lên mặt trước khi ngủ.",
+  },
+  {
+    id: "p9",
+    name: "Máy đo đường huyết",
+    img: "/khuyenmai/maydohuyetam.png",
+    cover: "/khuyenmai/maydohuyetam.png",
+    price: 450000,
+    old: 650000,
+    oldPrice: 650000,
+    sale: "-31%",
+    discount: 31,
+    rating: 4.6,
+    sold: 180,
+    tag: "Thiết bị y tế",
+    cat: "Thiết bị y tế",
+    brand: "Accu-Chek",
+    desc: "Máy đo đường huyết cá nhân, kết quả trong 5 giây. Màn hình lớn dễ đọc, lưu 500 kết quả. Kèm theo que thử và kim lấy máu.",
+  },
+  {
+    id: "p10",
+    name: "Collagen Peptide 5000mg",
+    img: "/khuyenmai/vitaminA-Z.png",
+    cover: "/khuyenmai/vitaminA-Z.png",
+    price: 320000,
+    old: 450000,
+    oldPrice: 450000,
+    sale: "-29%",
+    discount: 29,
+    rating: 4.9,
+    sold: 890,
+    tag: "Dinh dưỡng",
+    cat: "Dinh dưỡng",
+    brand: "Vital Proteins",
+    desc: "Collagen Peptide 5000mg hỗ trợ làm đẹp da, tóc, móng. Giúp da đàn hồi, giảm nếp nhăn. Hòa tan trong nước, không mùi vị. Uống 1-2 muỗng mỗi ngày.",
+  },
+  {
+    id: "p11",
+    name: "Dầu gội dược liệu",
+    img: "/khuyenmai/daugoi.png",
+    cover: "/khuyenmai/daugoi.png",
+    price: 95000,
+    old: 135000,
+    oldPrice: 135000,
+    sale: "-30%",
+    discount: 30,
+    rating: 4.5,
+    sold: 340,
+    tag: "Chăm sóc da",
+    cat: "Chăm sóc da",
+    brand: "Herbal Essences",
+    desc: "Dầu gội dược liệu thảo mộc tự nhiên, làm sạch và nuôi dưỡng tóc. Phù hợp cho tóc khô, xơ rối. Không chứa paraben, sulfate.",
+  },
+  {
+    id: "p12",
+    name: "Thuốc cảm cúm Panadol",
+    img: "/khuyenmai/panadol.png",
+    cover: "/khuyenmai/panadol.png",
+    price: 35000,
+    old: 50000,
+    oldPrice: 50000,
+    sale: "-30%",
+    discount: 30,
+    rating: 4.7,
+    sold: 1520,
+    tag: "Thuốc không kê đơn",
+    cat: "Thuốc không kê đơn",
+    brand: "Panadol",
+    desc: "Thuốc cảm cúm Panadol giảm đau, hạ sốt, trị các triệu chứng cảm cúm. Dạng viên nén, dễ uống. Uống 1-2 viên mỗi 4-6 giờ khi cần.",
   },
 ];
 
-const HOT_PAGE_SIZE = 3; // 3 sp / trang → 2 trang
+const HOT_PAGE_SIZE = 4; // 4 sp / trang
 
 /* ===== Helpers ===== */
 function addH(h) {
@@ -247,7 +387,7 @@ export default function KhuyenMai() {
     };
     const byCat = (d) => (cat === "Tất cả" ? true : d.cat === cat);
     const byQ = (d) =>
-      (d.title + d.desc).toLowerCase().includes(q.toLowerCase());
+      (d.title + d.desc + d.code).toLowerCase().includes(q.toLowerCase());
     return DEALS.filter((d) => byTab(d) && byCat(d) && byQ(d));
   }, [tab, cat, q]);
 
@@ -262,11 +402,33 @@ export default function KhuyenMai() {
     return PRODUCTS.slice(start, start + HOT_PAGE_SIZE);
   }, [hotPage]);
 
-  const saveCode = (code) => {
+  const saveCode = async (code) => {
     const next = new Set(saved);
-    next.has(code) ? next.delete(code) : next.add(code);
+    const isAdding = !next.has(code);
+    isAdding ? next.add(code) : next.delete(code);
     setSaved(next);
     localStorage.setItem("savedDeals", JSON.stringify([...next]));
+
+    // Copy mã vào clipboard khi lưu
+    if (isAdding) {
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch (err) {
+        // Fallback cho trình duyệt không hỗ trợ clipboard API
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand("copy");
+        } catch (fallbackErr) {
+          console.error("Could not copy code:", fallbackErr);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
   };
 
   const handleAddToCart = (p) => {
@@ -316,7 +478,7 @@ export default function KhuyenMai() {
           </div>
 
           <div className="ticker">
-            <marquee scrollAmount="8">
+            <marquee scrollAmount="6">
               🔔 <b>Đang diễn ra:</b> Flash Sale 20:00 • Mã <b>SKIN30</b> giảm
               30% • Vitamin <b>Mua 2 Tặng 1</b> • Thiết bị y tế <b>đến 49%</b> —
               Săn nhanh kẻo hết!
@@ -373,12 +535,17 @@ export default function KhuyenMai() {
         </div>
 
         {/* ===== Deals grid (không phân trang) ===== */}
-        <section className="deal-grid">
-          {filtered.length === 0 ? (
-            <div className="empty">
-              Không có ưu đãi phù hợp • Thử từ khóa khác?
-            </div>
-          ) : (
+        <section className="deals-section">
+          <div className="deals-header">
+            <h2>⚡ Ưu đãi đặc biệt</h2>
+            <p>Mã giảm giá • Deal sốc • Săn ngay kẻo hết!</p>
+          </div>
+          <div className="deal-grid">
+            {filtered.length === 0 ? (
+              <div className="empty">
+                Không có ưu đãi phù hợp • Thử từ khóa khác?
+              </div>
+            ) : (
             filtered.map((d) => {
               const pct = Math.min(100, Math.round((d.used / d.limit) * 100));
               const timeLeft = leftTime(d.endsAt);
@@ -441,32 +608,39 @@ export default function KhuyenMai() {
                 </article>
               );
             })
-          )}
+            )}
+          </div>
         </section>
 
         {/* ===== Sản phẩm HOT (có phân trang) ===== */}
         <section className="hot-section">
           <div className="hot-head">
-            <h2>Sản phẩm HOT</h2>
+            <h2>🔥 Sản phẩm HOT</h2>
             <p>Giảm sâu – bán chạy – xem là muốn chốt!</p>
           </div>
-          <div className="prod-grid">
+          <div className="t-grid">
             {hotProducts.map((p) => (
-              <article className="prod-card" key={p.id}>
+              <article className="t-card" key={p.id}>
                 <div
-                  className="thumb"
+                  className="t-thumb"
                   style={{ backgroundImage: `url(${p.cover || p.img})` }}
                 >
-                  <span className="off">-{p.discount}%</span>
-                  <span className="tag">{p.tag}</span>
+                  {p.discount > 0 && (
+                    <span className="t-badge t-badge--sale">
+                      -{p.discount}%
+                    </span>
+                  )}
+                  <span className="t-badge t-badge--tag">{p.tag}</span>
                 </div>
-                <div className="p-body">
-                  <h3>{p.name}</h3>
-                  <div className="price">
+                <div className="t-body">
+                  <h3 className="t-title" title={p.name}>
+                    {p.name}
+                  </h3>
+                  <div className="t-price">
                     <b>{formatVND(p.price)}</b>
                     <s>{formatVND(p.oldPrice)}</s>
                   </div>
-                  <div className="meta">
+                  <div className="t-meta">
                     <span className="rate">
                       <i className="ri-star-fill" /> {p.rating.toFixed(1)}
                     </span>
@@ -474,7 +648,7 @@ export default function KhuyenMai() {
                       Đã bán {p.sold.toLocaleString("vi-VN")}
                     </span>
                   </div>
-                  <div className="p-progress">
+                  <div className="t-hot">
                     <span
                       style={{
                         width: `${Math.min(
@@ -484,13 +658,31 @@ export default function KhuyenMai() {
                       }}
                     />
                   </div>
-                  <div className="actions">
-                    <button className="btn-buy">
+                  <div className="t-actions">
+                    <button
+                      className="btn btn--buy"
+                      onClick={() => handleAddToCart(p)}
+                    >
                       <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
                     </button>
-                    <button className="btn-ghost" onClick={() => setQuick(p)}>
+                    <button
+                      className="btn btn--ghost"
+                      onClick={() => setQuick(p)}
+                    >
                       <i className="ri-eye-line" /> Xem nhanh
                     </button>
+                    <Link
+                      className="btn btn--ghost"
+                      to={`/san-pham/${p.id}`}
+                      style={{
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <i className="ri-file-list-line" /> Chi tiết
+                    </Link>
                   </div>
                 </div>
               </article>
