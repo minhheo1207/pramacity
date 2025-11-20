@@ -1,7 +1,6 @@
 // src/pages/DichVu.jsx
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import PageBar from "../components/PageBar";
 import "../assets/css/dichvu.css";
 
 /** DỮ LIỆU CỤC BỘ (mock) */
@@ -168,11 +167,6 @@ export default function DichVu() {
 
   return (
     <main className="lc services">
-      <PageBar
-        title="Dịch vụ tại nhà thuốc"
-        subtitle="Nhanh – chuẩn – tận tâm • Đặt lịch là có mặt"
-      />
-
       {/* HERO */}
       <section className="sv-hero">
         <div className="container">

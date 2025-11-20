@@ -1,19 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import PageBar from "../components/PageBar";
 import "../assets/css/khuyenmai.css";
 import "../assets/css/thuoc.css";
 import QuickViewModal from "../components/QuickViewModal";
 import { addToCart } from "../services/products";
+import { getProducts } from "../services/productApi";
 
 /* ===== Data ===== */
-const CATS = [
-  "Tất cả",
-  "Chăm sóc da",
-  "Dinh dưỡng",
-  "Thuốc không kê đơn",
-  "Thiết bị y tế",
-];
+// CATS sẽ được load từ API
 
 const DEALS = [
   {
@@ -120,214 +114,7 @@ const BANNERS = [
   },
 ];
 
-const PRODUCTS = [
-  {
-    id: "p1",
-    name: "Serum Vitamin C 10%",
-    img: "/khuyenmai/serumC.png",
-    cover: "/khuyenmai/serumC.png",
-    price: 159000,
-    old: 259000,
-    oldPrice: 259000,
-    sale: "-39%",
-    discount: 39,
-    rating: 4.7,
-    sold: 320,
-    tag: "Chăm sóc da",
-    cat: "Chăm sóc da",
-    brand: "La Roche-Posay",
-    desc: "Serum Vitamin C 10% giúp làm sáng da, giảm thâm nám, chống oxy hóa. Phù hợp cho da thường đến da dầu. Sử dụng buổi sáng sau bước làm sạch.",
-  },
-  {
-    id: "p2",
-    name: "Vitamin Tổng hợp A–Z (120v)",
-    img: "/khuyenmai/vitaminA-Z.png",
-    cover: "/khuyenmai/vitaminA-Z.png",
-    price: 199000,
-    old: 329000,
-    oldPrice: 329000,
-    sale: "-40%",
-    discount: 40,
-    rating: 4.8,
-    sold: 812,
-    tag: "Dinh dưỡng",
-    cat: "Dinh dưỡng",
-    brand: "Nature Made",
-    desc: "Vitamin tổng hợp A-Z cung cấp đầy đủ các vitamin và khoáng chất thiết yếu cho cơ thể. Hỗ trợ tăng cường sức đề kháng, cải thiện sức khỏe tổng thể. Dùng 1 viên mỗi ngày sau bữa ăn.",
-  },
-  {
-    id: "p3",
-    name: "Nhiệt kế điện tử",
-    img: "/khuyenmai/nhietketdientu.png",
-    cover: "/khuyenmai/nhietketdientu.png",
-    price: 49000,
-    old: 129000,
-    oldPrice: 129000,
-    sale: "-62%",
-    discount: 62,
-    rating: 4.5,
-    sold: 1060,
-    tag: "Thiết bị y tế",
-    cat: "Thiết bị y tế",
-    brand: "SIKA",
-    desc: "Nhiệt kế điện tử đo nhiệt độ nhanh chóng và chính xác trong 10 giây. Màn hình LCD dễ đọc, có cảnh báo sốt. An toàn cho trẻ em và người lớn.",
-  },
-  {
-    id: "p4",
-    name: "Viên kẽm 15mg (60v)",
-    img: "/khuyenmai/kem.png",
-    cover: "/khuyenmai/kem.png",
-    price: 89000,
-    old: 149000,
-    oldPrice: 149000,
-    sale: "-40%",
-    discount: 40,
-    rating: 4.6,
-    sold: 540,
-    tag: "Dinh dưỡng",
-    cat: "Dinh dưỡng",
-    brand: "OstroVit",
-    desc: "Viên kẽm 15mg hỗ trợ tăng cường miễn dịch, cải thiện sức khỏe da và tóc. Phù hợp cho người thiếu kẽm, người hay ốm vặt. Uống 1 viên mỗi ngày.",
-  },
-  {
-    id: "p5",
-    name: "Sữa rửa mặt dịu nhẹ",
-    img: "/khuyenmai/suaruamat.png",
-    cover: "/khuyenmai/suaruamat.png",
-    price: 119000,
-    old: 189000,
-    oldPrice: 189000,
-    sale: "-37%",
-    discount: 37,
-    rating: 4.9,
-    sold: 980,
-    tag: "Chăm sóc da",
-    cat: "Chăm sóc da",
-    brand: "Cetaphil",
-    desc: "Sữa rửa mặt dịu nhẹ không chứa xà phòng, phù hợp cho da nhạy cảm. Làm sạch sâu mà không gây khô da. Sử dụng sáng và tối.",
-  },
-  {
-    id: "p6",
-    name: "Máy đo huyết áp cổ tay",
-    img: "/khuyenmai/maydohuyetapcotay.png",
-    cover: "/khuyenmai/maydohuyetapcotay.png",
-    price: 399000,
-    old: 590000,
-    oldPrice: 590000,
-    sale: "-32%",
-    discount: 32,
-    rating: 4.4,
-    sold: 265,
-    tag: "Thiết bị y tế",
-    cat: "Thiết bị y tế",
-    brand: "OMRON",
-    desc: "Máy đo huyết áp cổ tay tự động, dễ sử dụng. Màn hình LCD lớn, bộ nhớ lưu 60 kết quả. Phù hợp cho gia đình, người cao tuổi.",
-  },
-  {
-    id: "p7",
-    name: "Omega-3 Fish Oil 1000mg",
-    img: "/khuyenmai/VitaminC.png",
-    cover: "/khuyenmai/VitaminC.png",
-    price: 210000,
-    old: 280000,
-    oldPrice: 280000,
-    sale: "-25%",
-    discount: 25,
-    rating: 4.7,
-    sold: 450,
-    tag: "Dinh dưỡng",
-    cat: "Dinh dưỡng",
-    brand: "Nature's Bounty",
-    desc: "Omega-3 Fish Oil 1000mg hỗ trợ sức khỏe tim mạch, não bộ và mắt. Chiết xuất từ cá biển sâu, không mùi tanh. Uống 1-2 viên mỗi ngày.",
-  },
-  {
-    id: "p8",
-    name: "Kem dưỡng ẩm ban đêm",
-    img: "/khuyenmai/chamsoda.png",
-    cover: "/khuyenmai/chamsoda.png",
-    price: 185000,
-    old: 245000,
-    oldPrice: 245000,
-    sale: "-24%",
-    discount: 24,
-    rating: 4.8,
-    sold: 620,
-    tag: "Chăm sóc da",
-    cat: "Chăm sóc da",
-    brand: "Neutrogena",
-    desc: "Kem dưỡng ẩm ban đêm phục hồi và nuôi dưỡng da trong khi ngủ. Công thức không gây mụn, phù hợp mọi loại da. Thoa đều lên mặt trước khi ngủ.",
-  },
-  {
-    id: "p9",
-    name: "Máy đo đường huyết",
-    img: "/khuyenmai/maydohuyetam.png",
-    cover: "/khuyenmai/maydohuyetam.png",
-    price: 450000,
-    old: 650000,
-    oldPrice: 650000,
-    sale: "-31%",
-    discount: 31,
-    rating: 4.6,
-    sold: 180,
-    tag: "Thiết bị y tế",
-    cat: "Thiết bị y tế",
-    brand: "Accu-Chek",
-    desc: "Máy đo đường huyết cá nhân, kết quả trong 5 giây. Màn hình lớn dễ đọc, lưu 500 kết quả. Kèm theo que thử và kim lấy máu.",
-  },
-  {
-    id: "p10",
-    name: "Collagen Peptide 5000mg",
-    img: "/khuyenmai/vitaminA-Z.png",
-    cover: "/khuyenmai/vitaminA-Z.png",
-    price: 320000,
-    old: 450000,
-    oldPrice: 450000,
-    sale: "-29%",
-    discount: 29,
-    rating: 4.9,
-    sold: 890,
-    tag: "Dinh dưỡng",
-    cat: "Dinh dưỡng",
-    brand: "Vital Proteins",
-    desc: "Collagen Peptide 5000mg hỗ trợ làm đẹp da, tóc, móng. Giúp da đàn hồi, giảm nếp nhăn. Hòa tan trong nước, không mùi vị. Uống 1-2 muỗng mỗi ngày.",
-  },
-  {
-    id: "p11",
-    name: "Dầu gội dược liệu",
-    img: "/khuyenmai/daugoi.png",
-    cover: "/khuyenmai/daugoi.png",
-    price: 95000,
-    old: 135000,
-    oldPrice: 135000,
-    sale: "-30%",
-    discount: 30,
-    rating: 4.5,
-    sold: 340,
-    tag: "Chăm sóc da",
-    cat: "Chăm sóc da",
-    brand: "Herbal Essences",
-    desc: "Dầu gội dược liệu thảo mộc tự nhiên, làm sạch và nuôi dưỡng tóc. Phù hợp cho tóc khô, xơ rối. Không chứa paraben, sulfate.",
-  },
-  {
-    id: "p12",
-    name: "Thuốc cảm cúm Panadol",
-    img: "/khuyenmai/panadol.png",
-    cover: "/khuyenmai/panadol.png",
-    price: 35000,
-    old: 50000,
-    oldPrice: 50000,
-    sale: "-30%",
-    discount: 30,
-    rating: 4.7,
-    sold: 1520,
-    tag: "Thuốc không kê đơn",
-    cat: "Thuốc không kê đơn",
-    brand: "Panadol",
-    desc: "Thuốc cảm cúm Panadol giảm đau, hạ sốt, trị các triệu chứng cảm cúm. Dạng viên nén, dễ uống. Uống 1-2 viên mỗi 4-6 giờ khi cần.",
-  },
-];
-
-const HOT_PAGE_SIZE = 4; // 4 sp / trang
+// PRODUCTS sẽ được load từ API
 
 /* ===== Helpers ===== */
 function addH(h) {
@@ -352,19 +139,57 @@ function formatVND(n) {
   return n.toLocaleString("vi-VN") + "đ";
 }
 
+const vnd = (n) => {
+  if (n === null || n === undefined || isNaN(n)) {
+    return "0đ";
+  }
+  return Number(n).toLocaleString("vi-VN") + "đ";
+};
+
+// Flash sale countdown timer helper
+function getCountdown(startISO) {
+  const diff = new Date(startISO) - new Date();
+  if (diff <= 0) return { hours: 0, minutes: 0, seconds: 0 };
+  const hours = Math.floor(diff / 36e5);
+  const minutes = Math.floor((diff % 36e5) / 6e4);
+  const seconds = Math.floor((diff % 6e4) / 1000);
+  return { hours, minutes, seconds };
+}
+
 /* ===== Page ===== */
 export default function KhuyenMai() {
   const [tab, setTab] = useState("dangdienra");
-  const [cat, setCat] = useState("Tất cả");
   const [q, setQ] = useState("");
   const [saved, setSaved] = useState(
     () => new Set(JSON.parse(localStorage.getItem("savedDeals") || "[]"))
   );
   const [slide, setSlide] = useState(0);
   const [quick, setQuick] = useState(null);
+  const [quickTab, setQuickTab] = useState("tong-quan");
 
-  // ✅ phân trang cho SẢN PHẨM HOT
-  const [hotPage, setHotPage] = useState(1);
+  // Flash sale state
+  const [flashSaleProducts, setFlashSaleProducts] = useState([]);
+  const [flashSaleLoading, setFlashSaleLoading] = useState(true);
+  const [countdown, setCountdown] = useState({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  // Flash sale start time (set to 08:00 today or tomorrow)
+  const flashSaleStartTime = useMemo(() => {
+    const d = new Date();
+    const now = new Date();
+    d.setHours(8);
+    d.setMinutes(0);
+    d.setSeconds(0);
+    d.setMilliseconds(0);
+    // If 08:00 today has passed, set to 08:00 tomorrow
+    if (d < now) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d.toISOString();
+  }, []);
 
   // banner auto slide
   useEffect(() => {
@@ -374,6 +199,38 @@ export default function KhuyenMai() {
     );
     return () => clearInterval(id);
   }, []);
+
+  // Load flash sale products
+  useEffect(() => {
+    async function loadFlashSaleProducts() {
+      setFlashSaleLoading(true);
+      try {
+        const data = await getProducts({
+          sort: "giam-gia",
+          limit: 12,
+        });
+        if (data && Array.isArray(data.products)) {
+          setFlashSaleProducts(data.products.slice(0, 6)); // Show first 6 products
+        }
+      } catch (err) {
+        console.error("Error loading flash sale products:", err);
+        setFlashSaleProducts([]);
+      } finally {
+        setFlashSaleLoading(false);
+      }
+    }
+    loadFlashSaleProducts();
+  }, []);
+
+  // Countdown timer for flash sale
+  useEffect(() => {
+    const updateCountdown = () => {
+      setCountdown(getCountdown(flashSaleStartTime));
+    };
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [flashSaleStartTime]);
 
   // lọc deal (không phân trang)
   const filtered = useMemo(() => {
@@ -385,22 +242,10 @@ export default function KhuyenMai() {
       if (tab === "sapdienra") return s > now;
       return e < now;
     };
-    const byCat = (d) => (cat === "Tất cả" ? true : d.cat === cat);
     const byQ = (d) =>
       (d.title + d.desc + d.code).toLowerCase().includes(q.toLowerCase());
-    return DEALS.filter((d) => byTab(d) && byCat(d) && byQ(d));
-  }, [tab, cat, q]);
-
-  // ✅ tính trang cho Sản phẩm HOT
-  const hotPageCount = useMemo(
-    () => Math.max(1, Math.ceil(PRODUCTS.length / HOT_PAGE_SIZE)),
-    []
-  );
-
-  const hotProducts = useMemo(() => {
-    const start = (hotPage - 1) * HOT_PAGE_SIZE;
-    return PRODUCTS.slice(start, start + HOT_PAGE_SIZE);
-  }, [hotPage]);
+    return DEALS.filter((d) => byTab(d) && byQ(d));
+  }, [tab, q]);
 
   const saveCode = async (code) => {
     const next = new Set(saved);
@@ -431,26 +276,9 @@ export default function KhuyenMai() {
     }
   };
 
-  const handleAddToCart = (p) => {
-    try {
-      addToCart(p, 1);
-      setQuick(null);
-    } catch (err) {
-      // Error đã được xử lý trong addToCart
-    }
-  };
-
-  const prevHotPage = () => setHotPage((p) => Math.max(1, p - 1));
-  const nextHotPage = () => setHotPage((p) => Math.min(hotPageCount, p + 1));
-
   return (
     <>
       <main className="lc promo">
-        <PageBar
-          title="Khuyến mãi • Ưu đãi sốc"
-          subtitle="Banner • Deal • Sản phẩm hot — Ố dề cho đã!"
-        />
-
         {/* ===== Mega Banner + Ticker ===== */}
         <section className="mega-wrap">
           <div className="mega">
@@ -486,28 +314,185 @@ export default function KhuyenMai() {
           </div>
         </section>
 
-        {/* ===== SEARCH + CATEGORY ===== */}
+        {/* ===== FLASH SALE SECTION ===== */}
+        <section className="flashsale-section">
+          <div className="flashsale-container">
+            {/* Flash Sale Banner */}
+            <div className="flashsale-banner">
+              <div className="flashsale-banner-left">
+                <div className="flashsale-character">
+                  <i className="ri-shopping-bag-3-line"></i>
+                </div>
+                <div className="flashsale-title">
+                  <span className="flashsale-text">FLASHSALE</span>
+                  <i className="ri-flashlight-line flashsale-icon"></i>
+                  <span className="flashsale-text">GIÁ TỐT</span>
+                </div>
+              </div>
+              <button className="flashsale-rules-btn">
+                <i className="ri-coin-line"></i> Xem thể lệ{" "}
+                <i className="ri-arrow-right-s-line"></i>
+              </button>
+            </div>
+
+            {/* Flash Sale Info & Countdown */}
+            <div className="flashsale-info">
+              <div className="flashsale-time-range">
+                08:00 - 22:00,{" "}
+                {new Date().toLocaleDateString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                })}
+              </div>
+              <div className="flashsale-status">Sắp diễn ra</div>
+              <div className="flashsale-countdown">
+                <span className="countdown-label">Bắt đầu sau</span>
+                <div className="countdown-timer">
+                  <div className="countdown-box">
+                    <span className="countdown-number">
+                      {String(countdown.hours).padStart(2, "0")}
+                    </span>
+                    <span className="countdown-label-small">Giờ</span>
+                  </div>
+                  <span className="countdown-separator">:</span>
+                  <div className="countdown-box">
+                    <span className="countdown-number">
+                      {String(countdown.minutes).padStart(2, "0")}
+                    </span>
+                    <span className="countdown-label-small">Phút</span>
+                  </div>
+                  <span className="countdown-separator">:</span>
+                  <div className="countdown-box">
+                    <span className="countdown-number">
+                      {String(countdown.seconds).padStart(2, "0")}
+                    </span>
+                    <span className="countdown-label-small">Giây</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Flash Sale Products - Horizontal Scroll */}
+            <div className="flashsale-products-wrapper">
+              <div className="flashsale-products-scroll">
+                {flashSaleLoading ? (
+                  <div className="flashsale-loading">Đang tải sản phẩm...</div>
+                ) : flashSaleProducts.length === 0 ? (
+                  <div className="flashsale-empty">
+                    Không có sản phẩm flash sale
+                  </div>
+                ) : (
+                  flashSaleProducts.map((p) => (
+                    <article
+                      className="t-card flashsale-product-card"
+                      key={p.id}
+                    >
+                      <div className="t-thumb">
+                        <img
+                          src={p.cover || p.img || "/img/placeholder.jpg"}
+                          alt={p.name || "Sản phẩm"}
+                          onError={(e) => {
+                            e.currentTarget.src = "/img/placeholder.jpg";
+                          }}
+                        />
+                        {p.discount > 0 && (
+                          <span className="t-badge t-badge--sale">
+                            -{p.discount}%
+                          </span>
+                        )}
+                        {p.tag && (
+                          <span className="t-badge t-badge--tag">{p.tag}</span>
+                        )}
+                      </div>
+
+                      <div className="t-body">
+                        <h3 className="t-title" title={p.name}>
+                          <Link
+                            to={`/san-pham/${p.id}`}
+                            style={{
+                              color: "inherit",
+                              textDecoration: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {p.name}
+                          </Link>
+                        </h3>
+
+                        <div className="t-price">
+                          <b>{vnd(p.price)}</b>
+                          {p.oldPrice && <s>{vnd(p.oldPrice)}</s>}
+                        </div>
+
+                        <div className="t-meta">
+                          <span className="rate">
+                            <i className="ri-star-fill" />{" "}
+                            {(p.rating || 0).toFixed(1)}
+                          </span>
+                          <span className="sold">
+                            Đã bán {(p.sold || 0).toLocaleString("vi-VN")}
+                          </span>
+                        </div>
+
+                        <div className="t-actions">
+                          <button
+                            className="btn btn--buy flashsale-buy-btn"
+                            onClick={() => {
+                              try {
+                                const cartProduct = {
+                                  id: p.id,
+                                  name: p.name,
+                                  price: p.price,
+                                  img: p.cover || p.img,
+                                };
+                                addToCart(cartProduct, 1);
+                              } catch (err) {
+                                // Error đã được xử lý trong addToCart
+                              }
+                            }}
+                          >
+                            <i className="ri-fire-line"></i> Mở bán giá sốc
+                          </button>
+                          <button
+                            className="btn btn--ghost"
+                            onClick={() => {
+                              setQuickTab("tong-quan");
+                              setQuick(p);
+                            }}
+                          >
+                            <i className="ri-eye-line"></i> Xem chi tiết
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* View All Link */}
+            <div className="flashsale-view-all">
+              <Link
+                to="/flash-sale"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Xem tất cả <i className="ri-arrow-right-s-line"></i>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== SEARCH ===== */}
         <section className="promo-search">
-          <div className="search-left">
+          <div className="search-container">
             <div className="search-box">
               <i className="ri-search-line"></i>
               <input
                 type="text"
-                placeholder="Tìm mã / sản phẩm / danh mục..."
+                placeholder="Tìm mã khuyến mãi, sản phẩm, danh mục..."
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
-            </div>
-            <div className="search-cats">
-              {CATS.map((c) => (
-                <button
-                  key={c}
-                  className={`chip ${cat === c ? "active" : ""}`}
-                  onClick={() => setCat(c)}
-                >
-                  {c}
-                </button>
-              ))}
             </div>
           </div>
         </section>
@@ -536,176 +521,79 @@ export default function KhuyenMai() {
 
         {/* ===== Deals grid (không phân trang) ===== */}
         <section className="deals-section">
-          <div className="deals-header">
-            <h2>⚡ Ưu đãi đặc biệt</h2>
-            <p>Mã giảm giá • Deal sốc • Săn ngay kẻo hết!</p>
-          </div>
           <div className="deal-grid">
             {filtered.length === 0 ? (
               <div className="empty">
                 Không có ưu đãi phù hợp • Thử từ khóa khác?
               </div>
             ) : (
-            filtered.map((d) => {
-              const pct = Math.min(100, Math.round((d.used / d.limit) * 100));
-              const timeLeft = leftTime(d.endsAt);
-              const ended = new Date(d.endsAt) < new Date();
-              const soon = !ended && new Date(d.endsAt) - new Date() < 36e5;
-              return (
-                <article
-                  className={`deal-card ${ended ? "is-ended" : ""}`}
-                  key={d.id}
-                >
-                  <div
-                    className="media"
-                    style={{ backgroundImage: `url(${d.cover})` }}
+              filtered.map((d) => {
+                const pct = Math.min(100, Math.round((d.used / d.limit) * 100));
+                const timeLeft = leftTime(d.endsAt);
+                const ended = new Date(d.endsAt) < new Date();
+                const soon = !ended && new Date(d.endsAt) - new Date() < 36e5;
+                return (
+                  <article
+                    className={`deal-card ${ended ? "is-ended" : ""}`}
+                    key={d.id}
                   >
-                    <div className="media-grad"></div>
-                    <span className="tag">{d.cat}</span>
-                    {ended ? (
-                      <span className="state end">KẾT THÚC</span>
-                    ) : (
-                      <span className={`state ${soon ? "soon" : "run"}`}>
-                        {tab === "sapdienra" ? "SẮP DIỄN RA" : "ĐANG DIỄN RA"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="body">
-                    <h3>{d.title}</h3>
-                    <p className="desc">{d.desc}</p>
-                    <div className="meta">
-                      <div className="progress">
-                        <i className="ri-fire-fill"></i>
-                        <div className="bar">
-                          <span style={{ width: `${pct}%` }} />
+                    <div
+                      className="media"
+                      style={{ backgroundImage: `url(${d.cover})` }}
+                    >
+                      <div className="media-grad"></div>
+                      <span className="tag">{d.cat}</span>
+                      {ended ? (
+                        <span className="state end">KẾT THÚC</span>
+                      ) : (
+                        <span className={`state ${soon ? "soon" : "run"}`}>
+                          {tab === "sapdienra" ? "SẮP DIỄN RA" : "ĐANG DIỄN RA"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="body">
+                      <h3>{d.title}</h3>
+                      <p className="desc">{d.desc}</p>
+                      <div className="meta">
+                        <div className="progress">
+                          <div>
+                            <i className="ri-fire-fill"></i>
+                            <div className="bar">
+                              <span style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                          <small>{pct}% đã dùng</small>
                         </div>
-                        <small>{pct}% đã dùng</small>
+                        <div className="timer">
+                          <div>
+                            <i className="ri-timer-2-line"></i>
+                            <b>{ended ? "00:00:00" : timeLeft}</b>
+                          </div>
+                          <small>còn lại</small>
+                        </div>
                       </div>
-                      <div className="timer">
-                        <i className="ri-timer-2-line"></i>
-                        <b>{ended ? "00:00:00" : timeLeft}</b>
-                        <small>còn lại</small>
+                      <div className="coupon">
+                        <code>{d.code}</code>
+                        <button
+                          className={`btn ${saved.has(d.code) ? "saved" : ""}`}
+                          onClick={() => saveCode(d.code)}
+                        >
+                          {saved.has(d.code) ? (
+                            <>
+                              <i className="ri-check-line"></i> Đã lưu
+                            </>
+                          ) : (
+                            <>
+                              <i className="ri-save-3-line"></i> Lưu mã
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
-                    <div className="coupon">
-                      <code>{d.code}</code>
-                      <button
-                        className={`btn ${saved.has(d.code) ? "saved" : ""}`}
-                        onClick={() => saveCode(d.code)}
-                      >
-                        {saved.has(d.code) ? (
-                          <>
-                            <i className="ri-check-line"></i> Đã lưu
-                          </>
-                        ) : (
-                          <>
-                            <i className="ri-save-3-line"></i> Lưu mã
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })
+                  </article>
+                );
+              })
             )}
-          </div>
-        </section>
-
-        {/* ===== Sản phẩm HOT (có phân trang) ===== */}
-        <section className="hot-section">
-          <div className="hot-head">
-            <h2>🔥 Sản phẩm HOT</h2>
-            <p>Giảm sâu – bán chạy – xem là muốn chốt!</p>
-          </div>
-          <div className="t-grid">
-            {hotProducts.map((p) => (
-              <article className="t-card" key={p.id}>
-                <div
-                  className="t-thumb"
-                  style={{ backgroundImage: `url(${p.cover || p.img})` }}
-                >
-                  {p.discount > 0 && (
-                    <span className="t-badge t-badge--sale">
-                      -{p.discount}%
-                    </span>
-                  )}
-                  <span className="t-badge t-badge--tag">{p.tag}</span>
-                </div>
-                <div className="t-body">
-                  <h3 className="t-title" title={p.name}>
-                    {p.name}
-                  </h3>
-                  <div className="t-price">
-                    <b>{formatVND(p.price)}</b>
-                    <s>{formatVND(p.oldPrice)}</s>
-                  </div>
-                  <div className="t-meta">
-                    <span className="rate">
-                      <i className="ri-star-fill" /> {p.rating.toFixed(1)}
-                    </span>
-                    <span className="sold">
-                      Đã bán {p.sold.toLocaleString("vi-VN")}
-                    </span>
-                  </div>
-                  <div className="t-hot">
-                    <span
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.round((p.sold / 1200) * 100)
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="t-actions">
-                    <button
-                      className="btn btn--buy"
-                      onClick={() => handleAddToCart(p)}
-                    >
-                      <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
-                    </button>
-                    <button
-                      className="btn btn--ghost"
-                      onClick={() => setQuick(p)}
-                    >
-                      <i className="ri-eye-line" /> Xem nhanh
-                    </button>
-                    <Link
-                      className="btn btn--ghost"
-                      to={`/san-pham/${p.id}`}
-                      style={{
-                        textDecoration: "none",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <i className="ri-file-list-line" /> Chi tiết
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {/* Thanh phân trang cho Sản phẩm HOT */}
-          <div className="kv-paging">
-            <button
-              className="kv-page-btn"
-              onClick={prevHotPage}
-              disabled={hotPage === 1}
-            >
-              ‹ Trước
-            </button>
-            <span className="kv-page-current">{hotPage}</span>
-            <button
-              className="kv-page-btn"
-              onClick={nextHotPage}
-              disabled={hotPage === hotPageCount}
-            >
-              Sau ›
-            </button>
           </div>
         </section>
 
@@ -727,7 +615,15 @@ export default function KhuyenMai() {
       {quick && (
         <QuickViewModal
           data={quick}
-          onAdd={handleAddToCart}
+          initialTab={quickTab}
+          onAdd={(product) => {
+            try {
+              addToCart(product, 1);
+              setQuick(null);
+            } catch (err) {
+              // Error đã được xử lý trong addToCart
+            }
+          }}
           onClose={() => setQuick(null)}
         />
       )}

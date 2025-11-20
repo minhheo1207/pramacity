@@ -139,30 +139,6 @@ export default function Header() {
   return (
     <header className="lc-header">
       {/* ========================================== */}
-      {/* TOPLINE - Thông tin hỗ trợ */}
-      {/* ========================================== */}
-      <div className="lc-topline">
-        <div className="container lc-topline__wrap">
-          <div className="tl-left">
-            <i className="ri-search-line"></i>
-            <a href="#" className="underline">
-              Tìm hiểu ngay
-            </a>
-          </div>
-
-          <div className="tl-right">
-            <i className="ri-smartphone-line"></i>
-            <span>Tải ứng dụng</span>
-
-            <i className="ri-customer-service-2-line"></i>
-            <span>
-              Tư vấn ngay: <b>1800 6821</b>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================== */}
       {/* MAIN BAR - Logo, Search, Account, Cart */}
       {/* ========================================== */}
       <div className="lc-bar">

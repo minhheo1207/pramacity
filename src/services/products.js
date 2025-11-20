@@ -793,15 +793,31 @@ export function writeCart(c) {
 export function cartTotalQty(c = readCart()) {
   return c.reduce((s, it) => s + (it.qty || 0), 0);
 }
-export function dispatchCartUpdated() {
+export async function dispatchCartUpdated() {
+  try {
+    // Lấy số lượng từ API nếu user đã đăng nhập
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      const { getCartCount } = await import('./cart.js');
+      const count = await getCartCount();
+      document.dispatchEvent(new CustomEvent("CART_UPDATED", { detail: { qty: count.totalQuantity || 0 } }));
+      return;
+    }
+  } catch (err) {
+    // Nếu lỗi, fallback về localStorage
+    console.error("Error getting cart count:", err);
+  }
+  
+  // Fallback: lấy từ localStorage nếu chưa đăng nhập hoặc lỗi
   const qty = cartTotalQty();
   document.dispatchEvent(new CustomEvent("CART_UPDATED", { detail: { qty } }));
 }
 // Helper function to check if user is logged in
 function checkUserLoggedIn() {
   try {
-    const user = JSON.parse(localStorage.getItem("pc_user"));
-    return !!user;
+    const token = localStorage.getItem("auth_token");
+    const user = localStorage.getItem("user_profile");
+    return !!(token && user);
   } catch {
     return false;
   }
@@ -826,7 +842,7 @@ function showToast(msg, type = "info") {
   }, 3000);
 }
 
-export function addToCart(p, qty = 1) {
+export async function addToCart(p, qty = 1) {
   // Kiểm tra user đã đăng nhập chưa
   if (!checkUserLoggedIn()) {
     showToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng", "warning");
@@ -835,14 +851,16 @@ export function addToCart(p, qty = 1) {
     throw new Error("Chưa đăng nhập");
   }
 
-  const cart = readCart();
-  const i = cart.findIndex((it) => it.id === p.id);
-  if (i === -1)
-    cart.push({ id: p.id, name: p.name, price: p.price, img: p.img, qty });
-  else cart[i].qty += qty;
-  writeCart(cart);
-  dispatchCartUpdated();
-  showToast("Đã thêm sản phẩm vào giỏ hàng", "info");
+  try {
+    // Import động để tránh circular dependency
+    const { addToCart: addToCartAPI } = await import('./cart.js');
+    await addToCartAPI(p.id, qty);
+    dispatchCartUpdated();
+    showToast("Đã thêm sản phẩm vào giỏ hàng", "info");
+  } catch (error) {
+    showToast(error.message || "Lỗi khi thêm sản phẩm vào giỏ hàng", "error");
+    throw error;
+  }
 }
 
 // ===== PRODUCT MANAGEMENT (Admin) =====

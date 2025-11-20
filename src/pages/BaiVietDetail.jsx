@@ -1,7 +1,6 @@
 // src/pages/BaiVietDetail.jsx
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo } from "react";
-import PageBar from "../components/PageBar";
+import { useEffect, useState } from "react";
 import Frame from "../components/Frame";
 import { getPostById, getRelatedPosts } from "../services/posts";
 import "../assets/css/blog-detail.css";
@@ -9,44 +8,55 @@ import "../assets/css/blog-detail.css";
 export default function BaiVietDetail() {
   const { id } = useParams();
   const nav = useNavigate();
-  const post = useMemo(() => getPostById(id), [id]);
+  const [post, setPost] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  if (!post) {
+  useEffect(() => {
+    const fetchPost = async () => {
+      setLoading(true);
+      try {
+        const postData = await getPostById(id);
+        setPost(postData);
+        
+        if (postData) {
+          // Fetch related posts
+          const relatedData = await getRelatedPosts(postData, 8);
+          setRelated(relatedData);
+        }
+      } catch (error) {
+        console.error("Error fetching post:", error);
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchPost();
+    }
+  }, [id]);
+
+  if (loading) {
     return (
       <main className="lc container">
-        <PageBar
-          title="Không tìm thấy bài viết"
-          subtitle="Bài có thể đã bị xoá hoặc tạm ẩn"
-          right={
-            <button className="btn btn--ghost" onClick={() => nav(-1)}>
-              ← Quay lại
-            </button>
-          }
-        />
       </main>
     );
   }
 
-  const related = getRelatedPosts(post, 8);
+  if (!post) {
+    return (
+      <main className="lc container">
+      </main>
+    );
+  }
 
   return (
     <main className="lc blog-detail">
-      <PageBar
-        title={post.title}
-        subtitle={`${post.cat} • ${fmtDate(post.date)} • ${
-          post.readMin
-        } phút đọc`}
-        right={
-          <Link className="btn btn--ghost" to="/bai-viet">
-            ← Danh sách
-          </Link>
-        }
-      />
-
       <div className="container bd-wrap">
         {/* Nội dung chính */}
         <article className="bd-article">
@@ -63,22 +73,13 @@ export default function BaiVietDetail() {
             </span>
           </div>
 
-          <div className="bd-meta">
-            <span className="chip chip--soft">{fmtDate(post.date)}</span>
-            <span className="chip chip--soft">{post.readMin} phút đọc</span>
-            <span className="chip chip--soft">{post.author}</span>
-            <span className="chip chip--soft">
-              {post.views.toLocaleString()} lượt xem
-            </span>
-          </div>
-
           <div
             className="bd-content"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
           <div className="bd-tags">
-            {post.tags.map((t) => (
+            {(post.tags || []).map((t) => (
               <Link
                 key={t}
                 className="tag"
@@ -94,6 +95,16 @@ export default function BaiVietDetail() {
         <aside className="bd-side">
           <Frame title="Tóm tắt">
             <p className="muted">{post.excerpt}</p>
+            
+            <div className="bd-meta">
+              <span className="chip chip--soft">{fmtDate(post.date)}</span>
+              <span className="chip chip--soft">{post.readMin} phút đọc</span>
+              <span className="chip chip--soft">{post.author}</span>
+              <span className="chip chip--soft">
+                {(post.views || 0).toLocaleString()} lượt xem
+              </span>
+            </div>
+
             <ul className="bd-quick">
               <li>
                 <i className="ri-check-line" /> Nội dung biên tập có kiểm duyệt
@@ -112,7 +123,7 @@ export default function BaiVietDetail() {
         <section className="bd-related container">
           <h3 className="bd-related__title">Bài viết liên quan</h3>
           <div className="bd-slider">
-            {related.map((p) => (
+            {related.slice(0, 4).map((p) => (
               <article className="bd-card" key={p.id}>
                 <Link to={`/bai-viet/${p.id}`} className="bd-card__media">
                   <img src={p.cover} alt={p.title} loading="lazy" />
@@ -126,7 +137,7 @@ export default function BaiVietDetail() {
                   </h4>
                   <div className="bd-card__meta">
                     <span>{fmtDate(p.date)}</span>
-                    <span>• {p.readMin}’</span>
+                    <span>• {p.readMin}'</span>
                   </div>
                 </div>
               </article>

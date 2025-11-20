@@ -1,168 +1,19 @@
 // src/pages/Thuoc.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import PageBar from "../components/PageBar";
+import Frame from "../components/Frame";
 import QuickViewModal from "../components/QuickViewModal";
-import { addToCart } from "../services/products";
+import { addToCart, dispatchCartUpdated } from "../services/products";
+import { getProducts, getFilters } from "../services/productApi";
 import "../assets/css/thuoc.css";
+import "../assets/css/ban-chay.css";
 
-// ==== DATA DEMO ====
-const CATS = [
-  "Tất cả",
-  "Cảm cúm (OTC)",
-  "Đau – hạ sốt",
-  "Tiêu hóa",
-  "Vitamin/ khoáng",
-];
-
-const BRANDS = [
-  "Panadol",
-  "Efferalgan",
-  "Decolgen",
-  "Enterogermina",
-  "Neo-Tergynan",
-  "UPSA",
-];
-
-const FORMS = ["Viên nén", "Viên sủi", "Gói bột", "Dung dịch", "Xịt mũi"];
-
-const PRODUCTS = [
-  {
-    id: "t1",
-    name: "Panadol Extra 500mg",
-    tag: "Đau – hạ sốt",
-    cover: "/thuoc/paradol.png",
-    price: 39000,
-    oldPrice: 55000,
-    discount: 29,
-    rating: 4.8,
-    sold: 3200,
-    brand: "Panadol",
-    form: "Viên nén",
-  },
-  {
-    id: "t2",
-    name: "Efferalgan 500mg (viên sủi)",
-    tag: "Đau – hạ sốt",
-    cover: "/thuoc/viensui.png",
-    price: 45000,
-    oldPrice: 59000,
-    discount: 24,
-    rating: 4.7,
-    sold: 2100,
-    brand: "Efferalgan",
-    form: "Viên sủi",
-  },
-  {
-    id: "t3",
-    name: "Decolgen ND",
-    tag: "Cảm cúm (OTC)",
-    cover: "/thuoc/DecolgenND.png",
-    price: 29000,
-    oldPrice: 36000,
-    discount: 19,
-    rating: 4.6,
-    sold: 1800,
-    brand: "Decolgen",
-    form: "Viên nén",
-  },
-  {
-    id: "t4",
-    name: "Enterogermina 5 tỉ",
-    tag: "Tiêu hóa",
-    cover: "/thuoc/Enterogermina.png",
-    price: 92000,
-    oldPrice: 120000,
-    discount: 23,
-    rating: 4.9,
-    sold: 950,
-    brand: "Enterogermina",
-    form: "Dung dịch",
-  },
-  {
-    id: "t5",
-    name: "Vitamin C UPSA 1000mg sủi",
-    tag: "Vitamin/ khoáng",
-    cover: "/thuoc/vitaminC.png",
-    price: 69000,
-    oldPrice: 99000,
-    discount: 30,
-    rating: 4.8,
-    sold: 4100,
-    brand: "UPSA",
-    form: "Viên sủi",
-  },
-  {
-    id: "t6",
-    name: "Xịt mũi nước biển sâu",
-    tag: "Cảm cúm (OTC)",
-    cover: "/thuoc/xitmui.png",
-    price: 59000,
-    oldPrice: 79000,
-    discount: 25,
-    rating: 4.5,
-    sold: 760,
-    brand: "—",
-    form: "Xịt mũi",
-  },
-  // thêm vài sản phẩm cho đẹp + có phân trang
-  {
-    id: "t7",
-    name: "Panadol Cold & Flu",
-    tag: "Cảm cúm (OTC)",
-    cover: "/thuoc/PanadolCold&Flu.png",
-    price: 52000,
-    oldPrice: 68000,
-    discount: 24,
-    rating: 4.7,
-    sold: 1320,
-    brand: "Panadol",
-    form: "Viên nén",
-  },
-  {
-    id: "t8",
-    name: "Probiotic hỗ trợ tiêu hoá",
-    tag: "Tiêu hóa",
-    cover: "/thuoc/Probiotic.png",
-    price: 115000,
-    oldPrice: 145000,
-    discount: 21,
-    rating: 4.9,
-    sold: 640,
-    brand: "Enterogermina",
-    form: "Gói bột",
-  },
-  {
-    id: "t9",
-    name: "Vitamin tổng hợp cho người lớn",
-    tag: "Vitamin/ khoáng",
-    cover: "/thuoc/Vitamintonghop.png",
-    price: 135000,
-    oldPrice: 169000,
-    discount: 20,
-    rating: 4.8,
-    sold: 980,
-    brand: "UPSA",
-    form: "Viên nén",
-  },
-  {
-    id: "t10",
-    name: "Si rô ho thảo dược",
-    tag: "Cảm cúm (OTC)",
-    cover: "/thuoc/siro.png",
-    price: 72000,
-    oldPrice: 89000,
-    discount: 19,
-    rating: 4.6,
-    sold: 530,
-    brand: "—",
-    form: "Dung dịch",
-  },
-];
-
-const PAGE_SIZE = 6;
-
-const vnd = (n) => n.toLocaleString("vi-VN") + "đ";
+const vnd = (n) => {
+  if (n === null || n === undefined || isNaN(n)) {
+    return "0đ";
+  }
+  return Number(n).toLocaleString("vi-VN") + "đ";
+};
 
 export default function Thuoc() {
   const [q, setQ] = useState("");
@@ -172,75 +23,134 @@ export default function Thuoc() {
   const [sort, setSort] = useState("pho-bien");
   const [quick, setQuick] = useState(null);
   const [quickTab, setQuickTab] = useState("tong-quan"); // "tong-quan" | "chi-tiet"
-  const [page, setPage] = useState(1);
+  const [displayCount, setDisplayCount] = useState(16);
+  const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const [showMoreBrands, setShowMoreBrands] = useState(false);
 
-  // lọc + sắp xếp
-  const list = useMemo(() => {
-    let L = PRODUCTS.filter((p) => {
-      const byCat = cat === "Tất cả" || p.tag === cat;
-      const byBrand = brand === "Tất cả" || p.brand === brand;
-      const byForm = form === "Tất cả" || p.form === form;
-      const byQ = (p.name + " " + p.tag + " " + p.brand)
-        .toLowerCase()
-        .includes(q.toLowerCase());
-      return byCat && byBrand && byForm && byQ;
-    });
+  // State cho dữ liệu từ API
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    categories: ["Tất cả"],
+    brands: ["Tất cả"],
+    forms: ["Tất cả"],
+  });
 
-    switch (sort) {
-      case "gia-tang":
-        L.sort((a, b) => a.price - b.price);
-        break;
-      case "gia-giam":
-        L.sort((a, b) => b.price - a.price);
-        break;
-      case "giam-gia":
-        L.sort((a, b) => b.discount - a.discount);
-        break;
-      default:
-        L.sort((a, b) => b.sold - a.sold);
+  // Fetch filters khi component mount
+  useEffect(() => {
+    async function loadFilters() {
+      try {
+        const data = await getFilters();
+        if (data && data.categories && data.brands && data.forms) {
+          setFilters({
+            categories: ["Tất cả", ...(data.categories || [])],
+            brands: ["Tất cả", ...(data.brands || [])],
+            forms: ["Tất cả", ...(data.forms || [])],
+          });
+        }
+      } catch (err) {
+        console.error("Error loading filters:", err);
+        // Giữ filters mặc định nếu lỗi
+      }
     }
-    return L;
-  }, [q, cat, brand, form, sort]);
+    loadFilters();
+  }, []);
 
-  const pageCount = useMemo(
-    () => Math.max(1, Math.ceil(list.length / PAGE_SIZE)),
-    [list.length]
-  );
-
-  // mỗi lần filter/sort đổi thì quay về trang 1
+  // Fetch products - load tất cả để filter client-side
   useEffect(() => {
-    setPage(1);
-  }, [q, cat, brand, form, sort]);
+    async function loadProducts() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getProducts({
+          limit: 1000, // Load nhiều để filter client-side
+        });
+        // Kiểm tra data có tồn tại và có products không
+        if (data && Array.isArray(data.products)) {
+          setProducts(data.products);
+        } else if (data && data.products) {
+          setProducts(Array.isArray(data.products) ? data.products : []);
+        } else {
+          setProducts([]);
+        }
+      } catch (err) {
+        console.error("Error loading products:", err);
+        setError("Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.");
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
 
-  // đảm bảo page không vượt pageCount
   useEffect(() => {
-    setPage((p) => Math.min(p, pageCount));
-  }, [pageCount]);
+    dispatchCartUpdated();
+  }, []);
 
-  // danh sách hiển thị trên trang hiện tại
-  const pageList = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return list.slice(start, start + PAGE_SIZE);
-  }, [list, page]);
+  // Filter và sort products client-side
+  const filteredProducts = useMemo(() => {
+    let list = [...products];
 
-  const reset = () => {
+    if (q.trim()) {
+      const searchTerm = q.toLowerCase();
+      list = list.filter((p) =>
+        (p.name || "").toLowerCase().includes(searchTerm)
+      );
+    }
+
+    if (cat !== "Tất cả") {
+      list = list.filter((p) => (p.cat || p.category) === cat);
+    }
+
+    if (brand !== "Tất cả") {
+      list = list.filter((p) => p.brand === brand);
+    }
+
+    if (form !== "Tất cả") {
+      list = list.filter((p) => (p.form || p.dosageForm) === form);
+    }
+
+    if (sort === "pho-bien") {
+      list.sort((a, b) => (b.sold || 0) - (a.sold || 0));
+    } else if (sort === "gia-tang") {
+      list.sort((a, b) => a.price - b.price);
+    } else if (sort === "gia-giam") {
+      list.sort((a, b) => b.price - a.price);
+    } else if (sort === "giam-gia") {
+      list.sort((a, b) => {
+        const discountA = a.discount || 0;
+        const discountB = b.discount || 0;
+        return discountB - discountA;
+      });
+    }
+
+    return list;
+  }, [products, q, cat, brand, form, sort]);
+
+  const total = filteredProducts.length;
+  const displayedProducts = filteredProducts.slice(0, displayCount);
+  const hasMore = total > displayCount;
+
+  const handleShowMore = () => {
+    setDisplayCount((prev) => Math.min(prev + 16, total));
+  };
+
+  const resetFilters = () => {
     setQ("");
     setCat("Tất cả");
     setBrand("Tất cả");
     setForm("Tất cả");
     setSort("pho-bien");
+    setDisplayCount(16);
+    setShowMoreCategories(false);
+    setShowMoreBrands(false);
   };
-
-  const prevPage = () => setPage((p) => Math.max(1, p - 1));
-  const nextPage = () => setPage((p) => Math.min(pageCount, p + 1));
 
   return (
     <>
-      <main className="thuoc light">
-        <PageBar
-          title="Thuốc (OTC) • Nhà thuốc online"
-          subtitle="Lọc nhanh, xem thông tin chi tiết và thêm vào giỏ trong một màn hình."
-        />
+      <main className="lc shop">
 
         {/* HERO */}
         <section className="t-hero">
@@ -280,281 +190,252 @@ export default function Thuoc() {
         </section>
 
         {/* WRAP 2 CỘT */}
-        <section className="t-wrap">
-          {/* SIDEBAR */}
-          <aside className="t-side">
-            <div className="t-panel">
-              <div className="t-search">
-                <i className="ri-search-line" />
-                <input
-                  placeholder="Tìm thuốc, công dụng…"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                />
-                {q && (
-                  <button className="clear" onClick={() => setQ("")}>
-                    <i className="ri-close-line" />
-                  </button>
-                )}
+        <div className="container shop__wrap">
+          <aside className="shop__side">
+            <Frame>
+              <div className="filter-header">
+                <span className="filter-header__title">Bộ lọc</span>
+                <button className="filter-header__reset" onClick={resetFilters}>
+                  Thiết lập lại
+                </button>
               </div>
+            </Frame>
 
-              {/* Nhóm công dụng */}
-              <div className="t-group">
-                <h4>Nhóm công dụng</h4>
-                <div className="t-pills">
-                  {CATS.map((c) => (
-                    <button
-                      key={c}
-                      className={`pill ${c === "Tất cả" ? "pill--all" : ""} ${
-                        cat === c ? "on" : ""
-                      }`}
-                      onClick={() => setCat(c)}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
+            <Frame title="Danh mục">
+              <div className="chips">
+                {(showMoreCategories
+                  ? filters.categories
+                  : filters.categories.slice(0, 5)
+                ).map((c) => (
+                  <button
+                    key={c}
+                    className={"chip" + (c === cat ? " active" : "")}
+                    onClick={() => {
+                      setCat(c);
+                      setDisplayCount(16);
+                    }}
+                  >
+                    {c}
+                  </button>
+                ))}
               </div>
+              {filters.categories.length > 5 && (
+                <button
+                  className="filter-show-more"
+                  onClick={() => setShowMoreCategories(!showMoreCategories)}
+                >
+                  Xem thêm
+                  <i
+                    className={`ri-arrow-${
+                      showMoreCategories ? "up" : "down"
+                    }-s-line`}
+                  ></i>
+                </button>
+              )}
+            </Frame>
 
-              {/* Thương hiệu */}
-              <div className="t-group">
-                <h4>Thương hiệu</h4>
-                <div className="t-pills t-pills--grid">
+            <Frame title="Nhãn hàng">
+              <div className="chips">
+                {(showMoreBrands
+                  ? filters.brands
+                  : filters.brands.slice(0, 5)
+                ).map((b) => (
                   <button
-                    className={`pill pill--all ${
-                      brand === "Tất cả" ? "on" : ""
-                    }`}
-                    onClick={() => setBrand("Tất cả")}
+                    key={b}
+                    className={"chip" + (b === brand ? " active" : "")}
+                    onClick={() => {
+                      setBrand(b);
+                      setDisplayCount(16);
+                    }}
                   >
-                    Tất cả
+                    {b}
                   </button>
-                  {BRANDS.map((b) => (
-                    <button
-                      key={b}
-                      className={`pill ${brand === b ? "on" : ""}`}
-                      onClick={() => setBrand(b)}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
-
-              {/* Dạng bào chế */}
-              <div className="t-group">
-                <h4>Dạng bào chế</h4>
-                <div className="t-pills t-pills--grid">
-                  <button
-                    className={`pill pill--all ${
-                      form === "Tất cả" ? "on" : ""
-                    }`}
-                    onClick={() => setForm("Tất cả")}
-                  >
-                    Tất cả
-                  </button>
-                  {FORMS.map((f) => (
-                    <button
-                      key={f}
-                      className={`pill ${form === f ? "on" : ""}`}
-                      onClick={() => setForm(f)}
-                    >
-                      {f}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sắp xếp */}
-              <div className="t-group">
-                <h4>Sắp xếp</h4>
-                <div className="t-pills t-pills--column">
-                  <button
-                    className={`pill ${sort === "pho-bien" ? "on" : ""}`}
-                    onClick={() => setSort("pho-bien")}
-                  >
-                    Phổ biến
-                  </button>
-                  <button
-                    className={`pill ${sort === "gia-tang" ? "on" : ""}`}
-                    onClick={() => setSort("gia-tang")}
-                  >
-                    Giá tăng dần
-                  </button>
-                  <button
-                    className={`pill ${sort === "gia-giam" ? "on" : ""}`}
-                    onClick={() => setSort("gia-giam")}
-                  >
-                    Giá giảm dần
-                  </button>
-                  <button
-                    className={`pill ${sort === "giam-gia" ? "on" : ""}`}
-                    onClick={() => setSort("giam-gia")}
-                  >
-                    % giảm nhiều
-                  </button>
-                </div>
-              </div>
-
-              <button className="t-reset" onClick={reset}>
-                <i className="ri-restart-line" /> Xóa tất cả bộ lọc
-              </button>
-            </div>
+              {filters.brands.length > 5 && (
+                <button
+                  className="filter-show-more"
+                  onClick={() => setShowMoreBrands(!showMoreBrands)}
+                >
+                  Xem thêm
+                  <i
+                    className={`ri-arrow-${
+                      showMoreBrands ? "up" : "down"
+                    }-s-line`}
+                  ></i>
+                </button>
+              )}
+            </Frame>
           </aside>
 
           {/* CONTENT */}
-          <section className="t-content">
-            <div className="t-toolbar">
-              <span>
-                Đang hiển thị{" "}
-                <b>
-                  {pageList.length}/{list.length}
-                </b>{" "}
-                sản phẩm
-              </span>
-              <span className="t-legend">
-                <span className="dot dot--hot" /> Bán chạy{" "}
-                <span className="dot dot--sale" /> Đang giảm
-              </span>
+          <section className="shop__main">
+            <div className="shop__toolbar">
+              <div className="muted">{total.toLocaleString()} sản phẩm</div>
+              <div className="shop__actions">
+                <span className="sort-label">Sắp xếp theo:</span>
+                <select
+                  value={sort}
+                  onChange={(e) => {
+                    setSort(e.target.value);
+                    setDisplayCount(16);
+                  }}
+                >
+                  <option value="pho-bien">Phổ biến</option>
+                  <option value="gia-tang">Giá: thấp → cao</option>
+                  <option value="gia-giam">Giá: cao → thấp</option>
+                  <option value="giam-gia">% giảm nhiều</option>
+                </select>
+              </div>
             </div>
+
+            {loading && (
+              <div style={{ textAlign: "center", padding: "2rem" }}>
+                Đang tải sản phẩm...
+              </div>
+            )}
+
+            {error && (
+              <div
+                style={{ textAlign: "center", padding: "2rem", color: "red" }}
+              >
+                {error}
+              </div>
+            )}
+
+            {!loading && !error && displayedProducts.length === 0 && (
+              <div style={{ textAlign: "center", padding: "2rem" }}>
+                Không tìm thấy sản phẩm nào.
+              </div>
+            )}
 
             <div className="t-grid">
-              {pageList.map((p) => (
-                <article className="t-card" key={p.id}>
-                  <div
-                    className="t-thumb"
-                    style={{ backgroundImage: `url(${p.cover || p.img})` }}
-                  >
-                    {p.discount > 0 && (
-                      <span className="t-badge t-badge--sale">
-                        -{p.discount}%
-                      </span>
-                    )}
-                    <span className="t-badge t-badge--tag">{p.tag}</span>
-                  </div>
-
-                  <div className="t-body">
-                    <h3 className="t-title" title={p.name}>
-                      <Link 
-                        to={`/san-pham/${p.id}`}
-                        style={{ 
-                          color: "inherit", 
-                          textDecoration: "none",
-                          cursor: "pointer"
+              {displayedProducts &&
+                displayedProducts.length > 0 &&
+                displayedProducts.map((p) => (
+                  <article className="t-card" key={p.id}>
+                    <div className="t-thumb">
+                      <img
+                        src={p.cover || p.img || "/img/placeholder.jpg"}
+                        alt={p.name || "Sản phẩm"}
+                        onError={(e) => {
+                          e.currentTarget.src = "/img/placeholder.jpg";
                         }}
-                      >
-                        {p.name}
-                      </Link>
-                    </h3>
-
-                    <div className="t-price">
-                      <b>{vnd(p.price)}</b>
-                      <s>{vnd(p.oldPrice)}</s>
-                    </div>
-
-                    <div className="t-meta">
-                      <span className="rate">
-                        <i className="ri-star-fill" /> {p.rating.toFixed(1)}
-                      </span>
-                      <span className="sold">
-                        Đã bán {p.sold.toLocaleString("vi-VN")}
-                      </span>
-                    </div>
-
-                    <div className="t-hot">
-                      <span
                         style={{
-                          width: `${Math.min(
-                            100,
-                            Math.round((p.sold / 5000) * 100)
-                          )}%`,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
                         }}
                       />
+                      {p.discount > 0 && (
+                        <span className="t-badge t-badge--sale">
+                          -{p.discount}%
+                        </span>
+                      )}
+                      <span className="t-badge t-badge--tag">{p.tag}</span>
                     </div>
 
-                    <div className="t-actions">
-                      <button
-                        className="btn btn--buy"
-                        onClick={() => {
-                          try {
-                            // Convert thuoc product format to cart format
-                            const cartProduct = {
-                              id: p.id,
-                              name: p.name,
-                              price: p.price,
-                              img: p.cover || p.img,
-                            };
-                            addToCart(cartProduct, 1);
-                          } catch (err) {
-                            // Error đã được xử lý trong addToCart
-                          }
-                        }}
-                      >
-                        <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
-                      </button>
-                      <button
-                        className="btn btn--ghost"
-                        onClick={() => {
-                          setQuickTab("tong-quan");
-                          setQuick(p);
-                        }}
-                      >
-                        <i className="ri-eye-line" /> Xem nhanh
-                      </button>
-                      <Link
-                        className="btn btn--ghost"
-                        to={`/san-pham/${p.id}`}
-                        style={{ 
-                          textDecoration: "none",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center"
-                        }}
-                      >
-                        <i className="ri-file-list-line" /> Chi tiết
-                      </Link>
+                    <div className="t-body">
+                      <h3 className="t-title" title={p.name}>
+                        <Link
+                          to={`/san-pham/${p.id}`}
+                          style={{
+                            color: "inherit",
+                            textDecoration: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {p.name}
+                        </Link>
+                      </h3>
+
+                      <div className="t-price">
+                        <b>{vnd(p.price)}</b>
+                        {p.oldPrice && <s>{vnd(p.oldPrice)}</s>}
+                      </div>
+
+                      <div className="t-meta">
+                        <span className="rate">
+                          <i className="ri-star-fill" />{" "}
+                          {(p.rating || 0).toFixed(1)}
+                        </span>
+                        <span className="sold">
+                          Đã bán {(p.sold || 0).toLocaleString("vi-VN")}
+                        </span>
+                      </div>
+
+                      <div className="t-hot">
+                        <span
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              Math.round(((p.sold || 0) / 5000) * 100)
+                            )}%`,
+                          }}
+                        />
+                      </div>
+
+                      <div className="t-actions">
+                        <button
+                          className="btn btn--buy"
+                          onClick={() => {
+                            try {
+                              // Convert thuoc product format to cart format
+                              const cartProduct = {
+                                id: p.id,
+                                name: p.name,
+                                price: p.price,
+                                img: p.cover || p.img,
+                              };
+                              addToCart(cartProduct, 1);
+                            } catch (err) {
+                              // Error đã được xử lý trong addToCart
+                            }
+                          }}
+                        >
+                          <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
+                        </button>
+                        <button
+                          className="btn btn--ghost"
+                          onClick={() => {
+                            setQuickTab("tong-quan");
+                            setQuick(p);
+                          }}
+                        >
+                          <i className="ri-eye-line" /> Xem nhanh
+                        </button>
+                        <Link
+                          className="btn btn--ghost"
+                          to={`/san-pham/${p.id}`}
+                          style={{
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <i className="ri-file-list-line" /> Chi tiết
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                ))}
             </div>
 
-            {/* PAGINATION */}
-            <div className="t-paging">
-              <button
-                className="t-page-btn"
-                onClick={prevPage}
-                disabled={page === 1}
-              >
-                ‹ Trước
-              </button>
-              <span className="t-page-current">{page}</span>
-              <button
-                className="t-page-btn"
-                onClick={nextPage}
-                disabled={page === pageCount}
-              >
-                Sau ›
-              </button>
-            </div>
-
-            <div className="t-note">
-              <details>
-                <summary>
-                  <i className="ri-information-line" /> Lưu ý khi mua thuốc
-                  (OTC)
-                </summary>
-                <ul>
-                  <li>Thuốc thuộc nhóm không kê đơn. Đọc kỹ hướng dẫn.</li>
-                  <li>
-                    Nếu có bệnh nền/đang dùng thuốc khác, nên hỏi ý kiến bác
-                    sĩ/dược sĩ.
-                  </li>
-                  <li>Giá có thể thay đổi theo chương trình khuyến mãi.</li>
-                </ul>
-              </details>
-            </div>
+            {/* Nút Xem thêm */}
+            {hasMore && (
+              <div className="show-more-products">
+                <button
+                  className="btn-show-more-products"
+                  onClick={handleShowMore}
+                >
+                  Xem thêm
+                  <i className="ri-arrow-down-s-line"></i>
+                </button>
+              </div>
+            )}
           </section>
-        </section>
+        </div>
       </main>
 
       {quick && (

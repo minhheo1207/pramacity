@@ -1,10 +1,38 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { getProductById } from "../services/productApi";
 
 export default function QuickViewModal({ data, onClose, onAdd, initialTab = "tong-quan" }) {
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [productData, setProductData] = useState(data);
+  const [loading, setLoading] = useState(false);
+  
+  // Fetch chi tiết sản phẩm từ API nếu có id
+  useEffect(() => {
+    // Reset về data ban đầu khi data thay đổi
+    setProductData(data);
+    
+    if (data && data.id) {
+      setLoading(true);
+      getProductById(data.id)
+        .then((fullData) => {
+          setProductData(fullData);
+        })
+        .catch((err) => {
+          console.error("Error loading product details:", err);
+          // Giữ data ban đầu nếu lỗi
+          setProductData(data);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [data?.id]);
   
   if (!data) return null;
+  
+  // Sử dụng productData (từ API) hoặc data (từ props) làm fallback
+  const displayData = productData || data;
 
   // Khóa cuộn khi mở modal, trả lại như cũ khi đóng
   useEffect(() => {
@@ -45,36 +73,54 @@ export default function QuickViewModal({ data, onClose, onAdd, initialTab = "ton
         <div className="qv-body">
           <div
             className="qv-media"
-            style={{ backgroundImage: `url(${data.cover || data.img})` }}
+            style={{ 
+              backgroundImage: `url(${displayData.cover || displayData.img || "/img/placeholder.jpg"})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat"
+            }}
           >
-            <span className="qv-badge off">-{data.discount}%</span>
-            <span className="qv-badge tag">{data.tag}</span>
+            {displayData.discount > 0 && (
+              <span className="qv-badge off">-{displayData.discount}%</span>
+            )}
+            {displayData.tag && (
+              <span className="qv-badge tag">{displayData.tag}</span>
+            )}
           </div>
 
           <div className="qv-info">
-            <h3 className="qv-title">{data.name}</h3>
+            <h3 className="qv-title">{displayData.name}</h3>
 
             <div className="qv-price">
-              <b>{data.price.toLocaleString("vi-VN")}đ</b>
-              <s>{data.oldPrice?.toLocaleString("vi-VN")}đ</s>
+              <b>{(displayData.price || 0).toLocaleString("vi-VN")}đ</b>
+              {(displayData.oldPrice || displayData.old) && (
+                <s>{(displayData.oldPrice || displayData.old).toLocaleString("vi-VN")}đ</s>
+              )}
             </div>
 
             <div className="qv-meta">
-              <span>⭐ {data.rating?.toFixed?.(1) ?? "4.8"}</span>
-              <span>Đã bán {data.sold?.toLocaleString?.("vi-VN") ?? "0"}</span>
+              <span>⭐ {((displayData.rating || 0).toFixed?.(1) ?? "0.0")}</span>
+              <span>Đã bán {(displayData.sold || 0).toLocaleString("vi-VN")}</span>
             </div>
+            
+            {loading && (
+              <div style={{ padding: "1rem", textAlign: "center", color: "#666" }}>
+                Đang tải thông tin chi tiết...
+              </div>
+            )}
 
             {/* Tab Content */}
             {activeTab === "tong-quan" ? (
               <>
                 <p className="qv-desc">
-                  Sản phẩm đang được ưu đãi mạnh. Thêm vào giỏ để giữ giá ngay!
+                  {displayData.desc || displayData.description || displayData.shortDescription || 
+                   "Sản phẩm đang được ưu đãi mạnh. Thêm vào giỏ để giữ giá ngay!"}
                 </p>
 
                 <div className="qv-actions">
                   <button
                     className="qv-btn qv-primary"
-                    onClick={() => onAdd?.(data)}
+                    onClick={() => onAdd?.(displayData)}
                   >
                     <i className="ri-shopping-cart-2-line" />
                     Thêm vào giỏ
@@ -89,26 +135,36 @@ export default function QuickViewModal({ data, onClose, onAdd, initialTab = "ton
                 <div className="qv-detail-section">
                   <h4>Thông tin sản phẩm</h4>
                   <ul>
-                    <li><strong>Tên sản phẩm:</strong> {data.name}</li>
-                    {data.brand && <li><strong>Thương hiệu:</strong> {data.brand}</li>}
-                    {data.form && <li><strong>Dạng bào chế:</strong> {data.form}</li>}
-                    {data.tag && <li><strong>Nhóm công dụng:</strong> {data.tag}</li>}
-                    <li><strong>Giá:</strong> {data.price.toLocaleString("vi-VN")}đ</li>
-                    {data.oldPrice && (
-                      <li><strong>Giá gốc:</strong> <s>{data.oldPrice.toLocaleString("vi-VN")}đ</s></li>
+                    <li><strong>Tên sản phẩm:</strong> {displayData.name}</li>
+                    {displayData.sku && (
+                      <li><strong>Mã sản phẩm:</strong> {displayData.sku}</li>
                     )}
-                    {data.discount && (
-                      <li><strong>Giảm giá:</strong> -{data.discount}%</li>
+                    {displayData.brand && displayData.brand !== "—" && (
+                      <li><strong>Thương hiệu:</strong> {displayData.brand}</li>
                     )}
-                    <li><strong>Đánh giá:</strong> ⭐ {data.rating?.toFixed?.(1) ?? "4.8"}/5.0</li>
-                    <li><strong>Đã bán:</strong> {data.sold?.toLocaleString("vi-VN") ?? "0"} sản phẩm</li>
+                    {displayData.form && displayData.form.trim() !== "" && (
+                      <li><strong>Dạng bào chế:</strong> {displayData.form}</li>
+                    )}
+                    {displayData.tag && (
+                      <li><strong>Nhóm công dụng:</strong> {displayData.tag}</li>
+                    )}
+                    <li><strong>Giá:</strong> {(displayData.price || 0).toLocaleString("vi-VN")}đ</li>
+                    {(displayData.oldPrice || displayData.old) && (
+                      <li><strong>Giá gốc:</strong> <s>{(displayData.oldPrice || displayData.old).toLocaleString("vi-VN")}đ</s></li>
+                    )}
+                    {displayData.discount && displayData.discount > 0 && (
+                      <li><strong>Giảm giá:</strong> -{displayData.discount}%</li>
+                    )}
+                    <li><strong>Đánh giá:</strong> ⭐ {((displayData.rating || 0).toFixed?.(1) ?? "0.0")}/5.0</li>
+                    <li><strong>Đã bán:</strong> {(displayData.sold || 0).toLocaleString("vi-VN")} sản phẩm</li>
                   </ul>
                 </div>
 
                 <div className="qv-detail-section">
                   <h4>Mô tả sản phẩm</h4>
                   <p>
-                    {data.desc || "Sản phẩm chất lượng cao, được sản xuất theo tiêu chuẩn GMP. Phù hợp cho sử dụng hàng ngày."}
+                    {displayData.desc || displayData.description || displayData.shortDescription || 
+                     "Sản phẩm chất lượng cao, được sản xuất theo tiêu chuẩn GMP. Phù hợp cho sử dụng hàng ngày."}
                   </p>
                 </div>
 
@@ -123,7 +179,7 @@ export default function QuickViewModal({ data, onClose, onAdd, initialTab = "ton
                 <div className="qv-actions">
                   <button
                     className="qv-btn qv-primary"
-                    onClick={() => onAdd?.(data)}
+                    onClick={() => onAdd?.(displayData)}
                   >
                     <i className="ri-shopping-cart-2-line" />
                     Thêm vào giỏ
@@ -139,10 +195,12 @@ export default function QuickViewModal({ data, onClose, onAdd, initialTab = "ton
 
         {/* Footer */}
         <div className="qv-footer">
-          <div className="qv-coupon">
-            <i className="ri-ticket-2-line" />
-            Mã hot hôm nay: <code>SKIN30</code>
-          </div>
+          {displayData.sku && (
+            <div className="qv-coupon">
+              <i className="ri-ticket-2-line" />
+              Mã hot hôm nay: <code>{displayData.sku}</code>
+            </div>
+          )}
           <small>Giao nhanh 2h tại nội thành.</small>
         </div>
       </div>

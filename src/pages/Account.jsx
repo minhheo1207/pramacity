@@ -1,7 +1,8 @@
 // src/pages/Account.jsx
 import { useAuth } from "../utils/AuthContext";
 import { useEffect, useMemo, useState } from "react";
-import { getOrdersByUser, seedOrdersIfEmpty } from "../services/orders";
+import { useLocation } from "react-router-dom";
+import * as orderApi from "../services/orderApi";
 import {
   getAddressesByUser,
   addAddress,
@@ -19,13 +20,31 @@ import Frame from "../components/Frame";
 
 export default function Account() {
   const { user, updateProfile } = useAuth();
+  const location = useLocation();
   const [tab, setTab] = useState("profile");
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   // Modal chi tiết đơn
   const [openDetail, setOpenDetail] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
+
+  // Modal chọn lý do hủy đơn
+  const [openCancelModal, setOpenCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
+
+  // Danh sách lý do hủy đơn
+  const cancelReasons = [
+    { value: "change_mind", label: "Thay đổi ý định, không muốn mua nữa" },
+    { value: "found_cheaper", label: "Tìm được nơi bán rẻ hơn" },
+    { value: "wrong_order", label: "Đặt nhầm sản phẩm" },
+    { value: "duplicate_order", label: "Đặt trùng đơn hàng" },
+    { value: "payment_issue", label: "Vấn đề về thanh toán" },
+    { value: "delivery_issue", label: "Thời gian giao hàng không phù hợp" },
+    { value: "other", label: "Lý do khác" },
+  ];
 
   // Modal địa chỉ
   const [openAddressModal, setOpenAddressModal] = useState(false);
@@ -59,13 +78,71 @@ export default function Account() {
     birthday: "",
   });
 
+  // Load orders from API
+  async function loadOrders() {
+    if (!user?.id) return;
+    
+    try {
+      setLoadingOrders(true);
+      const ordersData = await orderApi.getUserOrders();
+      
+      // Transform API data to match frontend format
+      const transformedOrders = ordersData.map((order) => ({
+        id: order.id,
+        order_code: order.order_code,
+        status: order.status,
+        createdAt: new Date(order.created_at).getTime(),
+        items: order.items || [], // Will be loaded from order detail if needed
+        subtotal: order.final_amount || order.total_amount || 0,
+        total_amount: order.total_amount,
+        shipping_fee: order.shipping_fee,
+        discount_amount: order.discount_amount,
+        final_amount: order.final_amount,
+        payment_method: order.payment_method,
+        payment_status: order.payment_status,
+        shipping_status: order.shipping_status,
+      }));
+      
+      setOrders(transformedOrders);
+    } catch (error) {
+      console.error("Error loading orders:", error);
+      setOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }
+
   useEffect(() => {
     if (user?.id) {
-      seedOrdersIfEmpty(user.id);
-      setOrders(getOrdersByUser(user.id));
+      loadOrders();
       setAddresses(getAddressesByUser(user.id));
     }
   }, [user?.id]);
+
+  // Handle navigation state from checkout
+  useEffect(() => {
+    if (location.state?.activeTab === "orders") {
+      setTab("orders");
+      // Reload orders to get the new order
+      if (user?.id) {
+        loadOrders();
+        // If orderId is provided, open order detail after a short delay
+        if (location.state?.orderId) {
+          setTimeout(async () => {
+            try {
+              const orderDetail = await loadOrderDetail(location.state.orderId);
+              setActiveOrder(orderDetail);
+              setOpenDetail(true);
+            } catch (error) {
+              console.error("Error loading order detail:", error);
+            }
+          }, 500);
+        }
+      }
+      // Clear navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, user?.id]);
 
   // Khởi tạo dữ liệu edit khi user thay đổi
   useEffect(() => {
@@ -74,28 +151,135 @@ export default function Account() {
         name: user.name || "",
         phone: user.phone || "",
         gender: user.gender || "",
-        birthday: user.birthday || "",
+        birthday: user.birthday || user.date_of_birth || "",
       });
     }
   }, [user]);
 
   const ordersCount = useMemo(() => orders.length, [orders]);
 
+  // Load order detail when opening modal
+  async function loadOrderDetail(orderId) {
+    try {
+      const orderDetail = await orderApi.getOrderById(orderId);
+      
+      // Transform to match expected format
+      const transformedOrder = {
+        id: orderDetail.id,
+        order_code: orderDetail.order_code,
+        status: orderDetail.status,
+        createdAt: new Date(orderDetail.created_at).getTime(),
+        items: (orderDetail.items || []).map((item) => ({
+          id: item.id,
+          product_id: item.product_id,
+          name: item.product_name,
+          price: parseFloat(item.price),
+          qty: item.quantity,
+          quantity: item.quantity,
+          image: item.product_image,
+        })),
+        subtotal: orderDetail.final_amount || orderDetail.total_amount || 0,
+        total_amount: orderDetail.total_amount,
+        shipping_fee: orderDetail.shipping_fee,
+        discount_amount: orderDetail.discount_amount,
+        final_amount: orderDetail.final_amount,
+        payment_method: orderDetail.payment_method,
+        payment_status: orderDetail.payment_status,
+        shipping_status: orderDetail.shipping_status,
+        address: orderDetail.address_name ? {
+          full_name: orderDetail.address_name,
+          phone: orderDetail.address_phone,
+          province: orderDetail.province,
+          district: orderDetail.district,
+          ward: orderDetail.ward,
+          street_address: orderDetail.street_address,
+        } : null,
+        timeline: orderDetail.timeline || [],
+      };
+      
+      return transformedOrder;
+    } catch (error) {
+      console.error("Error loading order detail:", error);
+      throw error;
+    }
+  }
+
+  // Mở modal chọn lý do hủy đơn
+  function handleOpenCancelModal() {
+    setCancelReason("");
+    setCustomReason("");
+    setOpenCancelModal(true);
+  }
+
+  // Đóng modal chọn lý do hủy đơn
+  function handleCloseCancelModal() {
+    setOpenCancelModal(false);
+    setCancelReason("");
+    setCustomReason("");
+  }
+
+  // Xác nhận hủy đơn hàng với lý do
+  async function handleConfirmCancel() {
+    if (!activeOrder) return;
+
+    // Kiểm tra đã chọn lý do chưa
+    if (!cancelReason) {
+      showToast("Vui lòng chọn lý do hủy đơn hàng", "error");
+      return;
+    }
+
+    // Nếu chọn "Lý do khác", kiểm tra đã nhập lý do chưa
+    if (cancelReason === "other" && !customReason.trim()) {
+      showToast("Vui lòng nhập lý do hủy đơn hàng", "error");
+      return;
+    }
+
+    try {
+      // Lấy text lý do
+      const reasonText = cancelReason === "other" 
+        ? customReason.trim()
+        : cancelReasons.find(r => r.value === cancelReason)?.label || cancelReason;
+
+      showToast("Đang hủy đơn hàng...", "info");
+      
+      // Gọi API với lý do
+      await orderApi.cancelOrder(activeOrder.id, reasonText);
+      
+      // Reload orders list
+      await loadOrders();
+      
+      // Đóng các modal
+      handleCloseCancelModal();
+      setOpenDetail(false);
+      setActiveOrder(null);
+      
+      showToast("Đã hủy đơn hàng thành công!", "success");
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      const errorMessage = error.message || "Có lỗi xảy ra khi hủy đơn hàng";
+      showToast(errorMessage, "error");
+    }
+  }
+
   // --- 🔎 Tính toán danh sách sau khi tìm kiếm/lọc/sắp xếp ---
   const filteredOrders = useMemo(() => {
     const norm = (s) => (s || "").toLowerCase().trim();
     let list = orders.map((o) => ({
       ...o,
-      subtotal: o.items.reduce((s, it) => s + it.price * it.qty, 0),
+      // Calculate subtotal from items if available, otherwise use stored value
+      subtotal: o.items && o.items.length > 0 
+        ? o.items.reduce((s, it) => s + (it.price || 0) * (it.qty || it.quantity || 0), 0)
+        : (o.subtotal || o.final_amount || 0),
     }));
 
-    // Tìm kiếm theo mã đơn, tên sản phẩm
+    // Tìm kiếm theo mã đơn, mã đơn hàng, tên sản phẩm
     if (q.trim()) {
       const k = norm(q);
       list = list.filter(
         (o) =>
-          norm(o.id).includes(k) ||
-          o.items.some((it) => norm(it.name).includes(k))
+          norm(o.id?.toString() || "").includes(k) ||
+          norm(o.order_code || "").includes(k) ||
+          (o.items && o.items.some((it) => norm(it.name || "").includes(k)))
       );
     }
 
@@ -145,7 +329,7 @@ export default function Account() {
       name: user.name || "",
       phone: user.phone || "",
       gender: user.gender || "",
-      birthday: user.birthday || "",
+      birthday: user.birthday || user.date_of_birth || "",
     });
   }
 
@@ -153,17 +337,21 @@ export default function Account() {
   async function handleSave(e) {
     e.preventDefault();
     try {
+      // Xử lý phone: nếu rỗng sau khi trim, gửi null
+      const phoneValue = editData.phone.trim() || null;
+      
       await updateProfile({
         id: user.id,
         name: editData.name.trim(),
-        phone: editData.phone.trim(),
-        gender: editData.gender,
-        birthday: editData.birthday,
+        phone: phoneValue,
+        gender: editData.gender || null,
+        birthday: editData.birthday || null,
       });
       setIsEditing(false);
       // Toast notification
       showToast("Đã cập nhật thông tin thành công!");
     } catch (error) {
+      console.error("Error updating profile:", error);
       showToast("Có lỗi xảy ra khi cập nhật thông tin", "error");
     }
   }
@@ -366,11 +554,12 @@ export default function Account() {
     try {
       showToast("Đang tải ảnh...", "info");
       const b64 = await toB64(file);
+      // Chỉ cập nhật avatar, không thay đổi các field khác
       await updateProfile({
         id: user.id,
-        name: user.name,
-        phone: user.phone || "",
+        name: user.name, // Giữ nguyên name
         avatar: b64,
+        // KHÔNG gửi phone, gender, birthday để giữ nguyên giá trị hiện tại
       });
       // Reset input để có thể chọn lại cùng file
       e.target.value = "";
@@ -806,57 +995,142 @@ export default function Account() {
                       <div
                         className="order-card"
                         key={o.id}
-                        onClick={() => {
-                          setActiveOrder(o);
-                          setOpenDetail(true);
+                        onClick={async () => {
+                          try {
+                            const orderDetail = await loadOrderDetail(o.id);
+                            setActiveOrder(orderDetail);
+                            setOpenDetail(true);
+                          } catch (error) {
+                            console.error("Error loading order detail:", error);
+                            alert("Không thể tải chi tiết đơn hàng. Vui lòng thử lại.");
+                          }
                         }}
                       >
                         <div className="order-head">
                           <div className="order-id">
                             <i className="ri-file-list-line"></i>
-                            <b>#{o.id}</b>
+                            <b>#{o.order_code || o.id}</b>
                           </div>
                           <span className={`status ${o.status}`}>
                             {statusLabel(o.status)}
                           </span>
                         </div>
                         <ul className="order-items">
-                          {o.items.slice(0, 3).map((it, idx) => (
-                            <li key={idx}>
-                              <i className="ri-capsule-line"></i>
-                              <span className="item-name">{it.name}</span>
-                              <span className="item-qty">× {it.qty}</span>
-                              <em>{fmt(it.price * it.qty)}</em>
-                            </li>
-                          ))}
-                          {o.items.length > 3 && (
-                            <li className="order-more">
-                              <i className="ri-more-line"></i>
-                              <span>và {o.items.length - 3} sản phẩm khác</span>
+                          {o.items && o.items.length > 0 ? (
+                            <>
+                              {o.items.slice(0, 3).map((it, idx) => (
+                                <li key={idx}>
+                                  <i className="ri-capsule-line"></i>
+                                  <span className="item-name">{it.name || it.product_name}</span>
+                                  <span className="item-qty">× {it.qty || it.quantity || 1}</span>
+                                  <em>{fmt((it.price || 0) * (it.qty || it.quantity || 1))}</em>
+                                </li>
+                              ))}
+                              {o.items.length > 3 && (
+                                <li className="order-more-item">
+                                  <div className="order-more">
+                                    <i className="ri-more-line"></i>
+                                    <span>và {o.items.length - 3} sản phẩm khác</span>
+                                  </div>
+                                </li>
+                              )}
+                            </>
+                          ) : (
+                            <li style={{ 
+                              padding: 'var(--space-lg)', 
+                              textAlign: 'center', 
+                              color: 'var(--muted)',
+                              fontStyle: 'italic',
+                              justifyContent: 'center',
+                              gap: 'var(--space-sm)'
+                            }}>
+                              <i className="ri-information-line"></i>
+                              <span>Nhấn để xem chi tiết sản phẩm</span>
                             </li>
                           )}
                         </ul>
+                        
+                        {/* Thông tin bổ sung */}
+                        {(o.payment_method || o.shipping_status || o.payment_status) && (
+                          <div className="order-card-meta">
+                            {o.payment_method && (
+                              <div className="order-card-meta-item">
+                                <span className="order-card-meta-item-label">
+                                  <i className="ri-bank-card-line"></i>
+                                  Thanh toán
+                                </span>
+                                <span className="order-card-meta-item-value">
+                                  {o.payment_method === "cod" ? "Thanh toán khi nhận hàng" : 
+                                   o.payment_method === "online" ? "Thanh toán online" : 
+                                   o.payment_method || "—"}
+                                </span>
+                              </div>
+                            )}
+                            {o.payment_status && (
+                              <div className="order-card-meta-item">
+                                <span className="order-card-meta-item-label">
+                                  <i className={o.payment_status === "paid" ? "ri-checkbox-circle-line" : "ri-time-line"}></i>
+                                  Trạng thái thanh toán
+                                </span>
+                                <span className="order-card-meta-item-value">
+                                  {o.payment_status === "paid" ? "Đã thanh toán" : 
+                                   o.payment_status === "pending" ? "Chờ thanh toán" : 
+                                   o.payment_status === "failed" ? "Thất bại" : 
+                                   o.payment_status || "—"}
+                                </span>
+                              </div>
+                            )}
+                            {o.shipping_status && (
+                              <div className="order-card-meta-item">
+                                <span className="order-card-meta-item-label">
+                                  <i className="ri-truck-line"></i>
+                                  Vận chuyển
+                                </span>
+                                <span className="order-card-meta-item-value">
+                                  {o.shipping_status === "pending" ? "Chờ lấy hàng" : 
+                                   o.shipping_status === "shipping" ? "Đang giao" : 
+                                   o.shipping_status === "delivered" ? "Đã giao" : 
+                                   o.shipping_status || "—"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
                         <div className="order-foot">
                           <div className="order-date">
                             <i className="ri-calendar-line"></i>
                             <span>
                               {new Date(o.createdAt).toLocaleDateString(
-                                "vi-VN"
+                                "vi-VN",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
                               )}
                             </span>
                           </div>
                           <div className="order-total">
                             <span className="total-label">Tổng tiền</span>
-                            <b>{fmt(o.subtotal)}</b>
+                            <b>{fmt(o.final_amount || o.subtotal)}</b>
                           </div>
                         </div>
                         <button
                           className="btn btn-primary btn-sm"
                           type="button"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            setActiveOrder(o);
-                            setOpenDetail(true);
+                            try {
+                              const orderDetail = await loadOrderDetail(o.id);
+                              setActiveOrder(orderDetail);
+                              setOpenDetail(true);
+                            } catch (error) {
+                              console.error("Error loading order detail:", error);
+                              alert("Không thể tải chi tiết đơn hàng. Vui lòng thử lại.");
+                            }
                           }}
                         >
                           <i className="ri-eye-line"></i> Xem chi tiết
@@ -998,6 +1272,7 @@ export default function Account() {
         order={activeOrder}
         user={user}
         onClose={() => setOpenDetail(false)}
+        onCancel={handleOpenCancelModal}
       />
 
       {/* Modal thêm/sửa địa chỉ */}
@@ -1160,6 +1435,105 @@ export default function Account() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal chọn lý do hủy đơn */}
+      {openCancelModal && activeOrder && (
+        <div className="modal-backdrop" onClick={handleCloseCancelModal}>
+          <div className="cancel-reason-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cancel-reason-header">
+              <h3>
+                <i className="ri-questionnaire-line"></i>
+                Lý do hủy đơn hàng
+              </h3>
+              <button
+                className="cancel-reason-close"
+                onClick={handleCloseCancelModal}
+                type="button"
+              >
+                <i className="ri-close-line"></i>
+              </button>
+            </div>
+
+            <div className="cancel-reason-body">
+              <div className="cancel-reason-info">
+                <p>
+                  Bạn đang hủy đơn hàng <strong>#{activeOrder.order_code || activeOrder.id}</strong>
+                </p>
+                <p className="cancel-reason-warning">
+                  <i className="ri-error-warning-line"></i>
+                  Vui lòng chọn lý do hủy đơn hàng. Hành động này không thể hoàn tác.
+                </p>
+              </div>
+
+              <div className="cancel-reason-options">
+                <label className="cancel-reason-label">
+                  <span>Lý do hủy đơn hàng <span className="required">*</span></span>
+                </label>
+                <div className="cancel-reason-list">
+                  {cancelReasons.map((reason) => (
+                    <label
+                      key={reason.value}
+                      className={`cancel-reason-item ${
+                        cancelReason === reason.value ? "selected" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="cancelReason"
+                        value={reason.value}
+                        checked={cancelReason === reason.value}
+                        onChange={(e) => {
+                          setCancelReason(e.target.value);
+                          if (e.target.value !== "other") {
+                            setCustomReason("");
+                          }
+                        }}
+                      />
+                      <span className="radio-custom"></span>
+                      <span className="reason-label">{reason.label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {cancelReason === "other" && (
+                  <div className="cancel-reason-custom">
+                    <label>
+                      <span>Vui lòng nhập lý do hủy đơn hàng <span className="required">*</span></span>
+                    </label>
+                    <textarea
+                      value={customReason}
+                      onChange={(e) => setCustomReason(e.target.value)}
+                      placeholder="Nhập lý do hủy đơn hàng của bạn..."
+                      rows={4}
+                      className="cancel-reason-textarea"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="cancel-reason-footer">
+              <button
+                type="button"
+                className="btn btn-light"
+                onClick={handleCloseCancelModal}
+              >
+                <i className="ri-close-line"></i>
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger btn-confirm-cancel"
+                onClick={handleConfirmCancel}
+                disabled={!cancelReason || (cancelReason === "other" && !customReason.trim())}
+              >
+                <i className="ri-check-line"></i>
+                Xác nhận hủy đơn
+              </button>
+            </div>
           </div>
         </div>
       )}

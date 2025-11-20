@@ -17,6 +17,7 @@ import BaiVietDetail from "../pages/BaiVietDetail";
 import DatLich from "../pages/DatLich";
 import Booking from "../pages/Booking";
 import Thuoc from "../pages/Thuoc";
+import FlashSale from "../pages/FlashSale";
 import GioHang from "../pages/GioHang";
 import SearchResults from "../pages/SearchResults";
 import AdminDashboard from "../pages/AdminDashboard";
@@ -49,6 +50,7 @@ export default function AppRouter() {
           <Route path="/dat-lich" element={<DatLich />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/thuoc" element={<Thuoc />} />
+          <Route path="/flash-sale" element={<FlashSale />} />
           <Route path="/gio-hang" element={<GioHang />} />
 
           {/* Fallback */}

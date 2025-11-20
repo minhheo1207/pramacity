@@ -10,21 +10,173 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    repassword: "",
+  });
+  const [touchedFields, setTouchedFields] = useState({
+    name: false,
+    email: false,
+    password: false,
+    repassword: false,
+  });
+  const [nameValue, setNameValue] = useState("");
+
+  // Validation functions
+  function validateName(name) {
+    if (!name || !name.trim()) {
+      return "Vui lòng nhập họ và tên";
+    }
+    const trimmedName = name.trim();
+
+    // Kiểm tra độ dài (phải >= 5 ký tự)
+    if (trimmedName.length < 5) {
+      return "Họ và tên phải có ít nhất 5 ký tự";
+    }
+
+    if (/\d/.test(trimmedName)) {
+      return "Họ và tên không được chứa số";
+    }
+
+    // Kiểm tra xem có chữ cái in hoa không (không được có chữ in hoa)
+    if (/[A-Z]/.test(trimmedName)) {
+      return "Họ và tên không được có chữ cái in hoa";
+    }
+
+    return "";
+  }
+
+  function validatePassword(password) {
+    if (!password || !password.trim()) {
+      return "Vui lòng nhập mật khẩu";
+    }
+
+    // Kiểm tra độ dài (phải > 5 ký tự, tức là >= 6)
+    if (password.length <= 5) {
+      return "Mật khẩu phải lớn hơn 5 ký tự";
+    }
+
+    // Kiểm tra tất cả các yêu cầu phải được thỏa mãn đồng thời
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+      password
+    );
+
+    if (!hasUpperCase) {
+      return "Mật khẩu phải có ít nhất một chữ cái in hoa";
+    }
+
+    if (!hasLowerCase) {
+      return "Mật khẩu phải có ít nhất một chữ cái thường";
+    }
+
+    if (!hasNumber) {
+      return "Mật khẩu phải có ít nhất một chữ số";
+    }
+
+    if (!hasSpecialChar) {
+      return "Mật khẩu phải có ít nhất một ký tự đặc biệt";
+    }
+
+    return "";
+  }
+
+  // Hàm để filter số và ký tự đặc biệt khỏi họ tên, và chuyển chữ in hoa thành chữ thường
+  function filterNameInput(value) {
+    // Loại bỏ số và ký tự đặc biệt, chỉ giữ lại chữ cái và dấu cách
+    let filtered = value.replace(
+      /[^a-zàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđA-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ\s]/g,
+      ""
+    );
+    // Chuyển tất cả chữ in hoa thành chữ thường
+    filtered = filtered.toLowerCase();
+    return filtered;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+
     const data = Object.fromEntries(new FormData(e.currentTarget));
-    if (data.password !== data.repassword) {
-      setError("Mật khẩu nhập lại không khớp!");
-      setLoading(false);
-      return;
+    // Sử dụng nameValue từ state thay vì data.name
+    const nameToValidate = nameValue || data.name || "";
+    const emailToValidate = data.email || "";
+    const passwordToValidate = data.password || "";
+    const repasswordToValidate = data.repassword || "";
+
+    const newFieldErrors = {
+      name: "",
+      email: "",
+      password: "",
+      repassword: "",
+    };
+
+    let hasErrors = false;
+
+    // Validate name - BẮT BUỘC
+    const nameError = validateName(nameToValidate);
+    if (nameError) {
+      newFieldErrors.name = nameError;
+      hasErrors = true;
     }
+
+    // Validate email - BẮT BUỘC
+    if (!emailToValidate || !emailToValidate.trim()) {
+      newFieldErrors.email = "Vui lòng nhập email";
+      hasErrors = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToValidate.trim())) {
+      newFieldErrors.email = "Email không hợp lệ";
+      hasErrors = true;
+    }
+
+    // Validate password - BẮT BUỘC
+    // Kiểm tra lại một lần nữa để đảm bảo
+    if (!passwordToValidate || !passwordToValidate.trim()) {
+      newFieldErrors.password = "Vui lòng nhập mật khẩu";
+      hasErrors = true;
+    } else {
+      const passwordError = validatePassword(passwordToValidate);
+      if (passwordError) {
+        newFieldErrors.password = passwordError;
+        hasErrors = true;
+      }
+    }
+
+    // Validate repassword - BẮT BUỘC
+    if (!repasswordToValidate || !repasswordToValidate.trim()) {
+      newFieldErrors.repassword = "Vui lòng nhập lại mật khẩu";
+      hasErrors = true;
+    } else if (passwordToValidate !== repasswordToValidate) {
+      newFieldErrors.repassword = "Mật khẩu nhập lại không khớp";
+      hasErrors = true;
+    }
+
+    // Mark all fields as touched when submitting
+    setTouchedFields({
+      name: true,
+      email: true,
+      password: true,
+      repassword: true,
+    });
+    setFieldErrors(newFieldErrors);
+
+    // QUAN TRỌNG: Không cho phép submit nếu có bất kỳ lỗi nào
+    if (hasErrors) {
+      setLoading(false);
+      return; // Dừng lại, không tiếp tục submit
+    }
+
+    // Chỉ khi KHÔNG có lỗi mới tiếp tục
+    setLoading(true);
+
     try {
       await signup({
-        name: data.name,
-        email: data.email,
+        name: nameToValidate.trim(),
+        email: data.email.trim(),
         password: data.password,
       });
       navigate("/");
@@ -41,7 +193,9 @@ export default function Register() {
         <div className="auth-banner">
           <div className="auth-banner-content">
             <h1>Tham gia Pharmacity!</h1>
-            <p>Tạo tài khoản để tận hưởng ưu đãi đặc biệt và tích điểm thưởng</p>
+            <p>
+              Tạo tài khoản để tận hưởng ưu đãi đặc biệt và tích điểm thưởng
+            </p>
             <img src="/img/sunscreen.svg" alt="Register banner" />
           </div>
         </div>
@@ -86,7 +240,7 @@ export default function Register() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
               <label>
                 <svg
@@ -117,9 +271,105 @@ export default function Register() {
                 name="name"
                 type="text"
                 required
-                placeholder="Nhập họ và tên của bạn"
+                value={nameValue}
+                placeholder="Nhập họ và tên của bạn (ít nhất 5 ký tự, không có số, không có chữ in hoa)"
                 disabled={loading}
+                className={fieldErrors.name ? "error" : ""}
+                onInput={(e) => {
+                  // onInput chạy ngay khi giá trị thay đổi, kể cả paste, drag-drop, etc
+                  const originalValue = e.target.value;
+                  const filteredValue = filterNameInput(originalValue);
+
+                  // Nếu có ký tự không hợp lệ, ngăn chặn và hiển thị thông báo
+                  if (originalValue !== filteredValue) {
+                    // Cập nhật giá trị với giá trị đã được filter
+                    setNameValue(filteredValue);
+                    setFieldErrors({
+                      ...fieldErrors,
+                      name: "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+                    });
+                    // Force update input value
+                    e.target.value = filteredValue;
+                  } else {
+                    setNameValue(filteredValue);
+                    if (touchedFields.name) {
+                      const error = validateName(filteredValue);
+                      setFieldErrors({ ...fieldErrors, name: error });
+                    }
+                  }
+                }}
+                onChange={(e) => {
+                  // onChange chỉ để trigger React re-render
+                  const filteredValue = filterNameInput(e.target.value);
+                  setNameValue(filteredValue);
+                  if (touchedFields.name) {
+                    const error = validateName(filteredValue);
+                    setFieldErrors({ ...fieldErrors, name: error });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  // Ngăn chặn nhập số và ký tự đặc biệt ngay từ đầu
+                  const char = e.key;
+                  // Cho phép các phím điều hướng và xóa
+                  if (
+                    e.key === "Backspace" ||
+                    e.key === "Delete" ||
+                    e.key === "ArrowLeft" ||
+                    e.key === "ArrowRight" ||
+                    e.key === "ArrowUp" ||
+                    e.key === "ArrowDown" ||
+                    e.key === "Tab" ||
+                    e.key === "Enter" ||
+                    e.ctrlKey ||
+                    e.metaKey
+                  ) {
+                    return;
+                  }
+                  if (
+                    /\d/.test(char) ||
+                    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(char)
+                  ) {
+                    e.preventDefault();
+                    setFieldErrors({
+                      ...fieldErrors,
+                      name: "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+                    });
+                  }
+                  // Chữ in hoa sẽ được tự động chuyển thành chữ thường trong onInput
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pastedText = (
+                    e.clipboardData || window.clipboardData
+                  ).getData("text");
+                  const filteredText = filterNameInput(pastedText);
+                  const newValue = filterNameInput(nameValue + filteredText);
+                  setNameValue(newValue);
+                  if (pastedText !== filteredText) {
+                    setFieldErrors({
+                      ...fieldErrors,
+                      name: "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+                    });
+                  } else if (touchedFields.name) {
+                    const error = validateName(newValue);
+                    setFieldErrors({ ...fieldErrors, name: error });
+                  }
+                }}
+                onBlur={(e) => {
+                  setTouchedFields({ ...touchedFields, name: true });
+                  const error = validateName(nameValue);
+                  setFieldErrors({ ...fieldErrors, name: error });
+                }}
               />
+              {fieldErrors.name && (
+                <span className="field-error">{fieldErrors.name}</span>
+              )}
+              {!fieldErrors.name && (
+                <span className="field-hint">
+                  <i className="ri-information-line"></i> Yêu cầu: Ít nhất 5 ký
+                  tự, chỉ chữ cái thường, không có số và ký tự đặc biệt
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -154,7 +404,52 @@ export default function Register() {
                 required
                 placeholder="Nhập email của bạn"
                 disabled={loading}
+                className={fieldErrors.email ? "error" : ""}
+                onChange={(e) => {
+                  if (touchedFields.email) {
+                    const email = e.target.value.trim();
+                    if (!email) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        email: "Vui lòng nhập email",
+                      });
+                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        email: "Email không hợp lệ",
+                      });
+                    } else {
+                      setFieldErrors({ ...fieldErrors, email: "" });
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  setTouchedFields({ ...touchedFields, email: true });
+                  const email = e.target.value.trim();
+                  if (!email) {
+                    setFieldErrors({
+                      ...fieldErrors,
+                      email: "Vui lòng nhập email",
+                    });
+                  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setFieldErrors({
+                      ...fieldErrors,
+                      email: "Email không hợp lệ",
+                    });
+                  } else {
+                    setFieldErrors({ ...fieldErrors, email: "" });
+                  }
+                }}
               />
+              {fieldErrors.email && (
+                <span className="field-error">{fieldErrors.email}</span>
+              )}
+              {!fieldErrors.email && (
+                <span className="field-hint">
+                  <i className="ri-information-line"></i> Nhập địa chỉ email hợp
+                  lệ (ví dụ: example@email.com)
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -188,9 +483,38 @@ export default function Register() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={4}
-                  placeholder="Nhập mật khẩu (tối thiểu 4 ký tự)"
+                  minLength={6}
+                  placeholder="Nhập mật khẩu (lớn hơn 5 ký tự, có chữ hoa, chữ thường, chữ số, ký tự đặc biệt)"
                   disabled={loading}
+                  className={fieldErrors.password ? "error" : ""}
+                  onChange={(e) => {
+                    if (touchedFields.password) {
+                      const password = e.target.value;
+                      const error = validatePassword(password);
+                      setFieldErrors((prev) => {
+                        const newErrors = { ...prev, password: error };
+                        // Validate repassword again if it has been touched
+                        if (touchedFields.repassword) {
+                          const form = e.target.form;
+                          const repassword = form?.repassword?.value || "";
+                          if (repassword) {
+                            if (password !== repassword) {
+                              newErrors.repassword =
+                                "Mật khẩu nhập lại không khớp";
+                            } else {
+                              newErrors.repassword = "";
+                            }
+                          }
+                        }
+                        return newErrors;
+                      });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    setTouchedFields({ ...touchedFields, password: true });
+                    const error = validatePassword(e.target.value);
+                    setFieldErrors({ ...fieldErrors, password: error });
+                  }}
                 />
                 <button
                   type="button"
@@ -240,6 +564,15 @@ export default function Register() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <span className="field-error">{fieldErrors.password}</span>
+              )}
+              {!fieldErrors.password && (
+                <span className="field-hint">
+                  <i className="ri-information-line"></i> Yêu cầu: Lớn hơn 5 ký
+                  tự, có chữ hoa, chữ thường, chữ số và ký tự đặc biệt
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -273,9 +606,49 @@ export default function Register() {
                   name="repassword"
                   type={showConfirmPassword ? "text" : "password"}
                   required
-                  minLength={4}
+                  minLength={6}
                   placeholder="Nhập lại mật khẩu để xác nhận"
                   disabled={loading}
+                  className={fieldErrors.repassword ? "error" : ""}
+                  onChange={(e) => {
+                    if (touchedFields.repassword) {
+                      const repassword = e.target.value;
+                      const form = e.target.form;
+                      const password = form?.password?.value || "";
+                      if (!repassword || !repassword.trim()) {
+                        setFieldErrors({
+                          ...fieldErrors,
+                          repassword: "Vui lòng nhập lại mật khẩu",
+                        });
+                      } else if (password !== repassword) {
+                        setFieldErrors({
+                          ...fieldErrors,
+                          repassword: "Mật khẩu nhập lại không khớp",
+                        });
+                      } else {
+                        setFieldErrors({ ...fieldErrors, repassword: "" });
+                      }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    setTouchedFields({ ...touchedFields, repassword: true });
+                    const repassword = e.target.value;
+                    const form = e.target.form;
+                    const password = form?.password?.value || "";
+                    if (!repassword || !repassword.trim()) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        repassword: "Vui lòng nhập lại mật khẩu",
+                      });
+                    } else if (password !== repassword) {
+                      setFieldErrors({
+                        ...fieldErrors,
+                        repassword: "Mật khẩu nhập lại không khớp",
+                      });
+                    } else {
+                      setFieldErrors({ ...fieldErrors, repassword: "" });
+                    }
+                  }}
                 />
                 <button
                   type="button"
@@ -325,6 +698,15 @@ export default function Register() {
                   )}
                 </button>
               </div>
+              {fieldErrors.repassword && (
+                <span className="field-error">{fieldErrors.repassword}</span>
+              )}
+              {!fieldErrors.repassword && (
+                <span className="field-hint">
+                  <i className="ri-information-line"></i> Nhập lại mật khẩu để
+                  xác nhận (phải khớp với mật khẩu ở trên)
+                </span>
+              )}
             </div>
 
             <button

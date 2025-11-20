@@ -1,15 +1,17 @@
 // src/pages/ProductDetail.jsx
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import PageBar from "../components/PageBar";
-import {
-  getProductById,
-  getRelatedProducts,
-  addToCart,
-} from "../services/products";
+import Comments from "../components/Comments";
+import { addToCart } from "../services/products";
+import { getProductById, getRelatedProducts } from "../services/productApi";
 import "../assets/css/product-detail.css";
 
-const vnd = (n) => n.toLocaleString("vi-VN") + "đ";
+const vnd = (n) => {
+  if (n === null || n === undefined || isNaN(n)) {
+    return "0đ";
+  }
+  return Number(n).toLocaleString("vi-VN") + "đ";
+};
 
 // Toast mini
 function toast(msg) {
@@ -30,114 +32,88 @@ function toast(msg) {
   }, 2200);
 }
 
-// Lưu và lấy đánh giá từ localStorage
-const getReviews = (productId) => {
-  try {
-    const reviews = localStorage.getItem(`reviews_${productId}`);
-    return reviews ? JSON.parse(reviews) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveReview = (productId, review) => {
-  try {
-    const reviews = getReviews(productId);
-    reviews.push(review);
-    localStorage.setItem(`reviews_${productId}`, JSON.stringify(reviews));
-  } catch (err) {
-    console.error("Lỗi khi lưu đánh giá:", err);
-  }
-};
-
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const product = getProductById(id);
-  
-  // State cho form đánh giá
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewForm, setReviewForm] = useState({
-    name: "",
-    rating: 5,
-    content: "",
-  });
-  const [userReviews, setUserReviews] = useState([]);
+  // State cho sản phẩm và loading
+  const [product, setProduct] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
 
-  // Scroll to top khi id sản phẩm thay đổi (khi click vào sản phẩm liên quan)
+  // Load sản phẩm và sản phẩm liên quan
+  useEffect(() => {
+    async function loadProduct() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [productData, relatedData] = await Promise.all([
+          getProductById(id),
+          getRelatedProducts(id, 4).catch(() => []), // Nếu lỗi thì trả về mảng rỗng
+        ]);
+        setProduct(productData);
+        setRelated(relatedData || []);
+
+        // Set ảnh đầu tiên làm ảnh được chọn
+        if (productData.images && productData.images.length > 0) {
+          setSelectedImage(0);
+        }
+      } catch (err) {
+        console.error("Error loading product:", err);
+        setError("Không thể tải thông tin sản phẩm. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      loadProduct();
+    }
+  }, [id]);
+
+  // Scroll to top khi id sản phẩm thay đổi
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id]);
 
-  // Load đánh giá khi id thay đổi
-  useEffect(() => {
-    if (id) {
-      setUserReviews(getReviews(id));
-    }
-  }, [id]);
-
-  if (!product) {
+  if (loading) {
     return (
       <main className="pd">
-        <PageBar title="Sản phẩm không tồn tại" />
-        <div className="container pd-empty">
-          Không tìm thấy sản phẩm. Có thể sản phẩm đã được cập nhật lại.
+        <div
+          className="container pd-empty"
+          style={{ textAlign: "center", padding: "2rem" }}
+        >
+          Đang tải thông tin sản phẩm...
         </div>
       </main>
     );
   }
 
-  const related = getRelatedProducts(product, 3);
+  if (error || !product) {
+    return (
+      <main className="pd">
+        <div className="container pd-empty">
+          {error ||
+            "Không tìm thấy sản phẩm. Có thể sản phẩm đã được cập nhật lại."}
+        </div>
+      </main>
+    );
+  }
 
-  const handleAdd = (p = product) => {
+  const handleAdd = (p = product, qty = quantity) => {
     try {
-      addToCart(p, 1);
-      toast(`Đã thêm "${p.name}" vào giỏ`);
+      addToCart(p, qty);
+      toast(`Đã thêm ${qty} "${p.name}" vào giỏ`);
     } catch (err) {
       // Error đã được xử lý trong addToCart (hiển thị toast và mở modal)
     }
   };
 
-  const handleReviewSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!reviewForm.name.trim() || !reviewForm.content.trim()) {
-      toast("Vui lòng điền đầy đủ thông tin");
-      return;
-    }
-
-    const newReview = {
-      id: Date.now(),
-      name: reviewForm.name.trim(),
-      rating: reviewForm.rating,
-      content: reviewForm.content.trim(),
-      date: new Date().toISOString(),
-    };
-
-    saveReview(id, newReview);
-    setUserReviews([...userReviews, newReview]);
-    setReviewForm({ name: "", rating: 5, content: "" });
-    setShowReviewForm(false);
-    toast("Cảm ơn bạn đã đánh giá sản phẩm!");
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return "Hôm nay";
-    if (diffDays === 1) return "Hôm qua";
-    if (diffDays < 7) return `${diffDays} ngày trước`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
-    return `${Math.floor(diffDays / 365)} năm trước`;
-  };
-
-  const renderStars = (rating) => {
-    return "★".repeat(rating) + "☆".repeat(5 - rating);
+  const handleQuantityChange = (delta) => {
+    setQuantity((prev) => Math.max(1, Math.min(99, prev + delta)));
   };
 
   // Tính sale text từ old price nếu không có sale
@@ -145,7 +121,9 @@ export default function ProductDetail() {
     if (product.sale) return product.sale;
     const oldPrice = product.old || product.oldPrice;
     if (oldPrice && oldPrice > product.price) {
-      const discount = Math.round(((oldPrice - product.price) / oldPrice) * 100);
+      const discount = Math.round(
+        ((oldPrice - product.price) / oldPrice) * 100
+      );
       return `-${discount}%`;
     }
     return "";
@@ -154,25 +132,61 @@ export default function ProductDetail() {
 
   return (
     <main className="pd">
-      <PageBar title="Chi tiết sản phẩm" />
-
       {/* CARD 2 CỘT */}
       <div className="container pd-layout">
         {/* CỘT ẢNH */}
-        <div>
+        <div className="pd-image-column">
           <div className="pd-media-main">
             {saleText && <span className="pd-sale-badge">{saleText}</span>}
-            <img src={product.img || product.cover} alt={product.name} />
+            <img
+              src={
+                (product.images && product.images[selectedImage]?.url) ||
+                product.img ||
+                product.cover ||
+                "/img/placeholder.jpg"
+              }
+              alt={product.name}
+              onError={(e) => {
+                e.currentTarget.src = "/img/placeholder.jpg";
+              }}
+            />
           </div>
 
-          {/* thumbnails – tạm dùng lại ảnh chính */}
-          <div className="pd-thumbs">
-            {[1, 2, 3, 4].map((i) => (
-              <button className="pd-thumb" key={i} type="button">
-                <img src={product.img || product.cover} alt={product.name} />
+          {/* thumbnails – hiển thị tối đa 4 hình ảnh từ database */}
+          {product.images && product.images.length > 0 ? (
+            <div className="pd-thumbs">
+              {product.images.slice(0, 4).map((img, index) => (
+                <button
+                  className={`pd-thumb ${
+                    selectedImage === index ? "active" : ""
+                  }`}
+                  key={index}
+                  type="button"
+                  onClick={() => setSelectedImage(index)}
+                >
+                  <img
+                    src={img.url}
+                    alt={img.alt || product.name}
+                    onError={(e) => {
+                      e.currentTarget.src = "/img/placeholder.jpg";
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="pd-thumbs">
+              <button className="pd-thumb active" type="button">
+                <img
+                  src={product.img || product.cover || "/img/placeholder.jpg"}
+                  alt={product.name}
+                  onError={(e) => {
+                    e.currentTarget.src = "/img/placeholder.jpg";
+                  }}
+                />
               </button>
-            ))}
-          </div>
+            </div>
+          )}
 
           <div className="pd-meta-small">
             <span>
@@ -199,13 +213,12 @@ export default function ProductDetail() {
 
           <div className="pd-rating-row">
             <span className="pd-rating">
-              <i className="ri-star-fill" /> {product.rating.toFixed(1)}
+              <i className="ri-star-fill" /> {(product.rating || 0).toFixed(1)}
             </span>
             <span className="pd-dot" />
             <span>
-              Đã bán{" "}
-              <b>{product.sold ? product.sold.toLocaleString("vi-VN") : 0}</b>{" "}
-              sản phẩm
+              Đã bán <b>{(product.sold || 0).toLocaleString("vi-VN")}</b> sản
+              phẩm
             </span>
           </div>
 
@@ -220,14 +233,48 @@ export default function ProductDetail() {
           <div className="pd-price-box">
             <div>
               <div className="pd-price-main">{vnd(product.price)}</div>
-              {product.old && (
+              {(product.old || product.oldPrice) && (
                 <div className="pd-price-old">
                   Giá niêm yết:
-                  <s>{vnd(product.old)}</s>
+                  <s>{vnd(product.old || product.oldPrice)}</s>
                 </div>
               )}
             </div>
             {saleText && <span className="pd-price-tag">{saleText}</span>}
+          </div>
+
+          {/* CHỌN SỐ LƯỢNG */}
+          <div className="pd-quantity-box">
+            <label>Số lượng:</label>
+            <div className="pd-quantity-controls">
+              <button
+                type="button"
+                className="pd-qty-btn"
+                onClick={() => handleQuantityChange(-1)}
+                disabled={quantity <= 1}
+              >
+                <i className="ri-subtract-line" />
+              </button>
+              <input
+                type="number"
+                className="pd-qty-input"
+                value={quantity}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 1;
+                  setQuantity(Math.max(1, Math.min(99, val)));
+                }}
+                min="1"
+                max="99"
+              />
+              <button
+                type="button"
+                className="pd-qty-btn"
+                onClick={() => handleQuantityChange(1)}
+                disabled={quantity >= 99}
+              >
+                <i className="ri-add-line" />
+              </button>
+            </div>
           </div>
 
           {/* NÚT */}
@@ -255,9 +302,19 @@ export default function ProductDetail() {
               <li>
                 <strong>Tên sản phẩm:</strong> {product.name}
               </li>
-              {product.brand && (
+              {product.sku && (
+                <li>
+                  <strong>Mã sản phẩm:</strong> {product.sku}
+                </li>
+              )}
+              {product.brand && product.brand !== "—" && (
                 <li>
                   <strong>Thương hiệu:</strong> {product.brand}
+                </li>
+              )}
+              {product.form && product.form.trim() !== "" && (
+                <li>
+                  <strong>Dạng bào chế:</strong> {product.form}
                 </li>
               )}
               {product.cat && (
@@ -280,12 +337,13 @@ export default function ProductDetail() {
                 </li>
               )}
               <li>
-                <strong>Đánh giá:</strong> ⭐ {product.rating ? product.rating.toFixed(1) : "4.8"}/5.0
+                <strong>Đánh giá:</strong> ⭐ {(product.rating || 0).toFixed(1)}
+                /5.0
               </li>
               <li>
                 <strong>Đã bán:</strong>{" "}
-                {product.sold ? product.sold.toLocaleString("vi-VN") : "0"}{" "}
-                sản phẩm
+                {product.sold ? product.sold.toLocaleString("vi-VN") : "0"} sản
+                phẩm
               </li>
             </ul>
           </div>
@@ -293,7 +351,12 @@ export default function ProductDetail() {
           {/* MÔ TẢ */}
           <div className="pd-section">
             <h3>Mô tả sản phẩm</h3>
-            <p>{product.desc || "Sản phẩm chất lượng cao, được sản xuất theo tiêu chuẩn GMP. Phù hợp cho sử dụng hàng ngày."}</p>
+            <p>
+              {product.desc ||
+                product.description ||
+                product.shortDescription ||
+                "Sản phẩm chất lượng cao, được sản xuất theo tiêu chuẩn GMP. Phù hợp cho sử dụng hàng ngày."}
+            </p>
           </div>
 
           <div className="pd-section pd-note">
@@ -326,12 +389,12 @@ export default function ProductDetail() {
                 </Link>
                 <div className="pd-rel-body">
                   <h4 className="pd-rel-name" title={p.name}>
-                    <Link 
+                    <Link
                       to={`/san-pham/${p.id}`}
-                      style={{ 
-                        color: "inherit", 
+                      style={{
+                        color: "inherit",
                         textDecoration: "none",
-                        cursor: "pointer"
+                        cursor: "pointer",
                       }}
                     >
                       {p.name}
@@ -339,7 +402,7 @@ export default function ProductDetail() {
                   </h4>
                   <div className="pd-rel-price">
                     <span>{vnd(p.price)}</span>
-                    {p.old && <s>{vnd(p.old)}</s>}
+                    {(p.old || p.oldPrice) && <s>{vnd(p.old || p.oldPrice)}</s>}
                   </div>
                   <button
                     type="button"
@@ -356,204 +419,7 @@ export default function ProductDetail() {
       )}
 
       {/* ĐÁNH GIÁ KHÁCH HÀNG */}
-      <section className="pd-reviews">
-        <div className="container">
-          <div className="pd-section">
-            <h3>Đánh giá của khách hàng</h3>
-            <div className="reviews-summary">
-              <div className="review-rating">
-                <span className="review-score">{product.rating.toFixed(1)}</span>
-                <span className="review-stars">★</span>
-              </div>
-              <span className="review-count">
-                ({(product.sold || 0) + userReviews.length} đánh giá)
-              </span>
-            </div>
-          </div>
-
-          {/* Form đánh giá */}
-          {!showReviewForm ? (
-            <div className="review-form-toggle">
-              <button
-                type="button"
-                className="btn btn-main"
-                onClick={() => setShowReviewForm(true)}
-              >
-                <i className="ri-edit-line" /> Viết đánh giá
-              </button>
-            </div>
-          ) : (
-            <form className="review-form" onSubmit={handleReviewSubmit}>
-              <h4>Viết đánh giá của bạn</h4>
-              
-              <div className="review-form-group">
-                <label>Tên của bạn *</label>
-                <input
-                  type="text"
-                  value={reviewForm.name}
-                  onChange={(e) =>
-                    setReviewForm({ ...reviewForm, name: e.target.value })
-                  }
-                  placeholder="Nhập tên của bạn"
-                  required
-                />
-              </div>
-
-              <div className="review-form-group">
-                <label>Đánh giá *</label>
-                <div className="review-star-select">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      className={`star-btn ${
-                        star <= reviewForm.rating ? "active" : ""
-                      }`}
-                      onClick={() =>
-                        setReviewForm({ ...reviewForm, rating: star })
-                      }
-                    >
-                      ★
-                    </button>
-                  ))}
-                  <span className="star-label">
-                    {reviewForm.rating === 5
-                      ? "Rất tốt"
-                      : reviewForm.rating === 4
-                      ? "Tốt"
-                      : reviewForm.rating === 3
-                      ? "Bình thường"
-                      : reviewForm.rating === 2
-                      ? "Không tốt"
-                      : "Rất không tốt"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="review-form-group">
-                <label>Nội dung đánh giá *</label>
-                <textarea
-                  value={reviewForm.content}
-                  onChange={(e) =>
-                    setReviewForm({ ...reviewForm, content: e.target.value })
-                  }
-                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
-                  rows={5}
-                  required
-                />
-              </div>
-
-              <div className="review-form-actions">
-                <button type="submit" className="btn btn-main">
-                  Gửi đánh giá
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setShowReviewForm(false);
-                    setReviewForm({ name: "", rating: 5, content: "" });
-                  }}
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="reviews-list">
-            {/* Đánh giá của khách hàng (hiển thị trước) */}
-            {userReviews.map((review) => (
-              <article key={review.id} className="review-item review-item--user">
-                <div className="review-header">
-                  <div className="review-avatar">
-                    {review.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="review-info">
-                    <h4>{review.name}</h4>
-                    <div className="review-rating">
-                      <span className="review-stars">
-                        {renderStars(review.rating)}
-                      </span>
-                      <span className="review-date">
-                        {formatDate(review.date)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="review-body">
-                  <p>{review.content}</p>
-                </div>
-              </article>
-            ))}
-
-            {/* Demo reviews */}
-            <article className="review-item">
-              <div className="review-header">
-                <div className="review-avatar">N</div>
-                <div className="review-info">
-                  <h4>Nguyễn Văn A</h4>
-                  <div className="review-rating">
-                    <span className="review-stars">★★★★☆</span>
-                    <span className="review-date">2 ngày trước</span>
-                  </div>
-                </div>
-              </div>
-              <div className="review-body">
-                <p>Sản phẩm chất lượng tốt, giao hàng nhanh. Tôi rất hài lòng với dịch vụ của PharmaCity. Sẽ tiếp tục ủng hộ!</p>
-              </div>
-            </article>
-
-            <article className="review-item">
-              <div className="review-header">
-                <div className="review-avatar">T</div>
-                <div className="review-info">
-                  <h4>Trần Thị B</h4>
-                  <div className="review-rating">
-                    <span className="review-stars">★★★★★</span>
-                    <span className="review-date">1 tuần trước</span>
-                  </div>
-                </div>
-              </div>
-              <div className="review-body">
-                <p>Hiệu quả rõ rệt sau 3 ngày sử dụng. Giá cả hợp lý và có tư vấn nhiệt tình từ dược sĩ. Rất đáng tiền!</p>
-              </div>
-            </article>
-
-            <article className="review-item">
-              <div className="review-header">
-                <div className="review-avatar">L</div>
-                <div className="review-info">
-                  <h4>Lê Văn C</h4>
-                  <div className="review-rating">
-                    <span className="review-stars">★★★★☆</span>
-                    <span className="review-date">3 tuần trước</span>
-                  </div>
-                </div>
-              </div>
-              <div className="review-body">
-                <p>Đóng gói cẩn thận, sản phẩm đúng như mô tả. Hiệu quả ổn, nhưng tôi mong có thêm ưu đãi cho khách hàng thân thiết.</p>
-              </div>
-            </article>
-
-            <article className="review-item">
-              <div className="review-header">
-                <div className="review-avatar">H</div>
-                <div className="review-info">
-                  <h4>Hoàng Thị D</h4>
-                  <div className="review-rating">
-                    <span className="review-stars">★★★★★</span>
-                    <span className="review-date">1 tháng trước</span>
-                  </div>
-                </div>
-              </div>
-              <div className="review-body">
-                <p>Tuyệt vời! Sản phẩm chính hãng 100%, giao hàng siêu nhanh. Đã giới thiệu cho bạn bè và gia đình sử dụng.</p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
+      <Comments productId={id} productRating={product.rating || 0} productName={product.name} />
     </main>
   );
 }

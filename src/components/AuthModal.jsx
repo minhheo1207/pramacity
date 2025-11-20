@@ -369,6 +369,32 @@ export default function AuthModal({ open: openProp = false, onClose }) {
             )}
           </button>
         </form>
+
+        <p className="switch-link">
+          {tab === "login" ? (
+            <>
+              Chưa có tài khoản?{" "}
+              <button
+                type="button"
+                className="link-primary"
+                onClick={() => setTab("register")}
+              >
+                Đăng ký ngay
+              </button>
+            </>
+          ) : (
+            <>
+              Đã có tài khoản?{" "}
+              <button
+                type="button"
+                className="link-primary"
+                onClick={() => setTab("login")}
+              >
+                Đăng nhập
+              </button>
+            </>
+          )}
+        </p>
       </div>
     </div>
   );

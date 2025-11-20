@@ -1,100 +1,38 @@
 // src/utils/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
+import * as authService from "../services/auth.js";
 
 const AuthCtx = createContext(null);
 
-const USER_KEY = "pc_user"; // user đang đăng nhập
-const USERS_KEY = "pc_users"; // danh sách user đã đăng ký
-
-function loadUsers() {
-  try {
-    const users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
-    // Kiểm tra và tạo tài khoản mặc định nếu chưa có
-    const hasAdmin = users.some((u) => u.email === "admin@gmail.com");
-    const hasEmployee = users.some((u) => u.email === "nhanvien@gmail.com");
-    
-    if (!hasAdmin) {
-      users.push({
-        id: 1,
-        name: "Administrator",
-        email: "admin@gmail.com",
-        password: "admin",
-        phone: "",
-        avatar: "",
-        gender: "",
-        birthday: "",
-        role: "admin",
-      });
-    }
-    
-    if (!hasEmployee) {
-      users.push({
-        id: 2,
-        name: "Nhân viên",
-        email: "nhanvien@gmail.com",
-        password: "nhanvien",
-        phone: "",
-        avatar: "",
-        gender: "",
-        birthday: "",
-        role: "employee",
-      });
-    }
-    
-    // Lưu lại nếu đã thêm tài khoản mặc định
-    if (!hasAdmin || !hasEmployee) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-    
-    return users;
-  } catch {
-    // Nếu lỗi, tạo tài khoản mặc định
-    const defaultUsers = [
-      {
-        id: 1,
-        name: "Administrator",
-        email: "admin@gmail.com",
-        password: "admin",
-        phone: "",
-        avatar: "",
-        gender: "",
-        birthday: "",
-        role: "admin",
-      },
-      {
-        id: 2,
-        name: "Nhân viên",
-        email: "nhanvien@gmail.com",
-        password: "nhanvien",
-        phone: "",
-        avatar: "",
-        gender: "",
-        birthday: "",
-        role: "employee",
-      },
-    ];
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
-    return defaultUsers;
-  }
-}
-function saveUsers(arr) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(arr));
-}
-
 export function AuthProvider({ children }) {
-  // Lấy user đang đăng nhập nếu có
+  // Lấy user đang đăng nhập nếu có (từ localStorage)
   const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(USER_KEY)) || null;
+      const profile = localStorage.getItem('user_profile');
+      return profile ? JSON.parse(profile) : null;
     } catch {
       return null;
     }
   });
 
-  // Đồng bộ user -> localStorage
+  // Load user từ API khi component mount để verify token
   useEffect(() => {
-    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-    else localStorage.removeItem(USER_KEY);
+    async function loadUser() {
+      const currentUser = await authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        // Nếu không có user từ API, xóa user trong state
+        setUser(null);
+      }
+    }
+    loadUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Đồng bộ user -> localStorage (đã được xử lý trong authService)
+  useEffect(() => {
+    // User state được quản lý bởi authService
   }, [user]);
 
   async function login(emailOrObj, password) {
@@ -108,162 +46,95 @@ export function AuthProvider({ children }) {
       pass = password;
     }
 
-    const users = loadUsers();
-    const found = users.find(
-      (u) =>
-        u.email.trim().toLowerCase() === email.trim().toLowerCase() &&
-        u.password === pass
-    );
-    if (!found) throw new Error("Email hoặc mật khẩu không đúng");
-    
-    // Kiểm tra tài khoản bị khóa
-    if (found.locked) {
-      throw new Error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+    try {
+      const result = await authService.login({ email, password: pass });
+      setUser(result.user);
+      return result.user;
+    } catch (error) {
+      throw error;
     }
-    
-    // Không lưu password vào state
-    const safe = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      phone: found.phone || "",
-      avatar: found.avatar || "",
-      gender: found.gender || "",
-      birthday: found.birthday || "",
-      role: found.role || "customer", // Mặc định là customer nếu không có role
-    };
-    setUser(safe);
-    return safe;
   }
 
   async function register(nameOrObj, email, password) {
     // Hỗ trợ cả object và tham số riêng lẻ
-    let name, emailVal, pass;
+    let name, emailVal, pass, phone;
     if (typeof nameOrObj === "object" && nameOrObj !== null) {
       name = nameOrObj.name;
       emailVal = nameOrObj.email;
       pass = nameOrObj.password;
+      phone = nameOrObj.phone;
     } else {
       name = nameOrObj;
       emailVal = email;
       pass = password;
+      phone = null;
     }
 
-    const users = loadUsers();
-    const existed = users.some(
-      (u) => u.email.trim().toLowerCase() === emailVal.trim().toLowerCase()
-    );
-    if (existed) throw new Error("Email đã tồn tại");
-
-    const newUser = {
-      id: Date.now(),
-      name: name.trim(),
-      email: emailVal.trim().toLowerCase(),
-      password: pass, // chỉ lưu ở DS users, không trả về qua state
-      phone: "",
-      avatar: "",
-      gender: "",
-      birthday: "",
-      role: "customer", // Mặc định là customer khi đăng ký
-    };
-    users.push(newUser);
-    saveUsers(users);
-
-    const safe = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      phone: "",
-      avatar: "",
-      gender: "",
-      birthday: "",
-      role: "customer",
-    };
-    setUser(safe);
-    return safe;
+    try {
+      const result = await authService.signup({
+        name,
+        email: emailVal,
+        password: pass,
+        phone: phone || null,
+      });
+      setUser(result.user);
+      return result.user;
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Alias cho register để tương thích với signup
   const signup = register;
 
   function logout() {
+    authService.logout();
     setUser(null);
   }
 
   async function updateProfile(partial) {
-    // Cập nhật state hiện tại
-    setUser((prev) => ({ ...prev, ...partial }));
-
-    // Cập nhật trong danh sách đã đăng ký
-    const users = loadUsers();
-    const idx = users.findIndex((u) => u.id === partial.id);
-    if (idx !== -1) {
-      users[idx] = { ...users[idx], ...partial };
-      saveUsers(users);
+    try {
+      // Cập nhật qua API (nếu có) hoặc localStorage
+      const updated = await authService.updateProfile(partial);
+      setUser(updated);
+      return updated;
+    } catch (error) {
+      // Fallback: chỉ cập nhật state
+      setUser((prev) => ({ ...prev, ...partial }));
+      return { ...user, ...partial };
     }
   }
 
-  // Admin functions
+  // Admin functions - giữ lại để tương thích, có thể cập nhật sau
+  // TODO: Implement API endpoints cho admin functions
   function getAllUsers() {
-    return loadUsers().filter((u) => u.role === "customer" || !u.role);
+    // Tạm thời trả về mảng rỗng, cần implement API endpoint
+    return [];
   }
 
   function getAllEmployees() {
-    return loadUsers().filter((u) => u.role === "employee");
+    // Tạm thời trả về mảng rỗng, cần implement API endpoint
+    return [];
   }
 
   function toggleUserLock(userId) {
-    const users = loadUsers();
-    const idx = users.findIndex((u) => u.id === userId);
-    if (idx === -1) throw new Error("Không tìm thấy người dùng");
-    
-    users[idx].locked = !users[idx].locked;
-    users[idx].status = users[idx].locked ? "locked" : "active";
-    saveUsers(users);
-    return users[idx];
+    // TODO: Implement API endpoint
+    throw new Error("Chức năng này cần được implement qua API");
   }
 
   function updateUser(userId, updates) {
-    const users = loadUsers();
-    const idx = users.findIndex((u) => u.id === userId);
-    if (idx === -1) throw new Error("Không tìm thấy người dùng");
-    
-    users[idx] = { ...users[idx], ...updates };
-    saveUsers(users);
-    return users[idx];
+    // TODO: Implement API endpoint
+    throw new Error("Chức năng này cần được implement qua API");
   }
 
   function deleteUser(userId) {
-    const users = loadUsers();
-    const filtered = users.filter((u) => u.id !== userId);
-    saveUsers(filtered);
-    return true;
+    // TODO: Implement API endpoint
+    throw new Error("Chức năng này cần được implement qua API");
   }
 
   function createUser(userData) {
-    const users = loadUsers();
-    const existed = users.some(
-      (u) => u.email.trim().toLowerCase() === userData.email.trim().toLowerCase()
-    );
-    if (existed) throw new Error("Email đã tồn tại");
-
-    const newUser = {
-      id: Date.now(),
-      name: userData.name.trim(),
-      email: userData.email.trim().toLowerCase(),
-      password: userData.password || "123456", // Mật khẩu mặc định
-      phone: userData.phone || "",
-      avatar: userData.avatar || "",
-      gender: userData.gender || "",
-      birthday: userData.birthday || "",
-      role: userData.role || "customer",
-      locked: false,
-      status: "active",
-      joinDate: new Date().toISOString().split("T")[0],
-    };
-    users.push(newUser);
-    saveUsers(users);
-    return newUser;
+    // TODO: Implement API endpoint
+    throw new Error("Chức năng này cần được implement qua API");
   }
 
   const value = {

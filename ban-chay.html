@@ -2,159 +2,24 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sản phẩm bán chạy</title>
-    <link rel="stylesheet" href="./src/assets/css/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <title>Sản phẩm bán chạy - PharmaCity</title>
   </head>
   <body>
-    <!-- TOPBAR -->
-    <div class="topbar">
-      <div class="container topbar__wrap">
-        <div class="topbar__left">
-          <span class="chip">🚚 Miễn phí ship đơn từ 300K</span>
-          <a href="#" class="link">Hệ thống nhà thuốc</a>
-          <a href="#" class="link">Tra cứu đơn hàng</a>
-        </div>
-        <div class="topbar__right">
-          <span>📞 Hotline: <strong>1800 6821</strong></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- HEADER -->
-    <header class="site-header">
-      <div class="container header__wrap">
-        <a href="./index.html" class="logo">Pharma<span>City</span></a>
-
-        <div class="menu-trigger" tabindex="0">
-          <button class="btn btn--ghost">☰ Danh mục</button>
-          <div class="dropdown">
-            <a href="#">Thuốc</a>
-            <a href="#">TPBVSK</a>
-            <a href="#">Mẹ & Bé</a>
-            <a href="#">Thiết bị y tế</a>
-          </div>
-        </div>
-
-        <form class="search" action="#" method="get">
-          <input type="text" name="q" placeholder="Tìm sản phẩm bán chạy..." />
-          <button type="submit" class="btn">Tìm</button>
-        </form>
-
-        <nav class="quick-nav">
-          <a href="./khuyen-mai.html" class="quick-link">🔥 KM</a>
-          <a href="#" class="quick-link">👤</a>
-          <a href="#" class="quick-link">🛒 <span class="badge">0</span></a>
-        </nav>
-      </div>
-    </header>
-
-    <!-- BANNER -->
-    <section class="banner-hot">
-      <div class="container">
-        <h1>🏆 Top sản phẩm bán chạy</h1>
-        <p>Cập nhật những sản phẩm được khách hàng yêu thích nhất tuần này!</p>
-      </div>
-    </section>
-
-    <main class="container">
-      <!-- FILTER -->
-      <div class="filterbar">
-        <div class="filterbar__wrap">
-          <div class="tabs">
-            <a href="./ban-chay.html" class="tab tab--active">Tất cả</a>
-            <a href="#" class="tab">Dược phẩm</a>
-            <a href="#" class="tab">TPBVSK</a>
-            <a href="#" class="tab">Chăm sóc cá nhân</a>
-          </div>
-          <div class="sort">
-            <label for="sort">Sắp xếp:</label>
-            <select id="sort" class="select">
-              <option>Mặc định</option>
-              <option>Giảm giá nhiều</option>
-              <option>Giá thấp → cao</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- GRID -->
-      <section class="section">
-        <div class="grid">
-          <article class="card bestseller">
-            <div class="bestseller__tag">#1</div>
-            <div
-              class="card__media"
-              style="background-image: url('./public/img/bp.jpg')"
-            ></div>
-            <div class="card__body">
-              <h3 class="card__title">Máy đo huyết áp</h3>
-              <div class="price-row">
-                <span class="price--old">790.000đ</span>
-                <span class="price">690.000đ</span>
-                <span class="badge-sale">-13%</span>
-              </div>
-              <button class="btn btn--block">Chọn mua</button>
-            </div>
-          </article>
-
-          <article class="card bestseller">
-            <div class="bestseller__tag">#2</div>
-            <div
-              class="card__media"
-              style="background-image: url('./public/img/syrup.jpg')"
-            ></div>
-            <div class="card__body">
-              <h3 class="card__title">Siro ho thảo dược</h3>
-              <div class="price-row">
-                <span class="price--old">80.000đ</span>
-                <span class="price">70.000đ</span>
-                <span class="badge-sale">-12%</span>
-              </div>
-              <button class="btn btn--block">Chọn mua</button>
-            </div>
-          </article>
-
-          <article class="card bestseller">
-            <div class="bestseller__tag">#3</div>
-            <div
-              class="card__media"
-              style="background-image: url('./public/img/omega.jpg')"
-            ></div>
-            <div class="card__body">
-              <h3 class="card__title">Omega-3 1000mg</h3>
-              <div class="price-row">
-                <span class="price--old">210.000đ</span>
-                <span class="price">180.000đ</span>
-                <span class="badge-sale">-14%</span>
-              </div>
-              <button class="btn btn--block">Chọn mua</button>
-            </div>
-          </article>
-
-          <article class="card bestseller">
-            <div class="bestseller__tag">#4</div>
-            <div
-              class="card__media"
-              style="background-image: url('./public/img/gauze.jpg')"
-            ></div>
-            <div class="card__body">
-              <h3 class="card__title">Gạc y tế 10x10</h3>
-              <div class="price-row">
-                <span class="price">25.000đ</span>
-              </div>
-              <button class="btn btn--block">Chọn mua</button>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="site-footer">
-      <div class="container">
-        <p>© 2025 PharmaCity demo. All rights reserved.</p>
-      </div>
-    </footer>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Redirect to React route immediately
+      (function () {
+        const path = window.location.pathname;
+        if (path === "/ban-chay.html" || path.endsWith("/ban-chay.html")) {
+          window.history.replaceState({}, "", "/ban-chay");
+        }
+      })();
+    </script>
   </body>
 </html>

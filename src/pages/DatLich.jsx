@@ -1,7 +1,6 @@
 // src/pages/DatLich.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import PageBar from "../components/PageBar";
 import "../assets/css/booking.css";
 
 /** DỮ LIỆU CỤC BỘ (trùng với DichVu.jsx) */
@@ -176,10 +175,6 @@ export default function DatLich() {
   if (loading) {
     return (
       <main className="lc">
-        <PageBar
-          title="Đặt lịch dịch vụ"
-          subtitle="Chọn dịch vụ • Chọn giờ • Xác nhận"
-        />
         <section className="bk-hero">
           <div className="skel skel-hero" />
         </section>
@@ -193,7 +188,6 @@ export default function DatLich() {
   if (err) {
     return (
       <main className="lc">
-        <PageBar title="Đặt lịch dịch vụ" subtitle="Có lỗi khi tải dữ liệu" />
         <section className="bk-wrap">
           <div className="error-box">
             <p>{err}</p>
@@ -207,10 +201,6 @@ export default function DatLich() {
     const dt = new Date(success.at);
     return (
       <main className="lc">
-        <PageBar
-          title="Đặt lịch thành công"
-          subtitle="Chúng tôi đã nhận yêu cầu của bạn"
-        />
         <section className="bk-success">
           <div className="bk-s-card">
             <i className="ri-checkbox-circle-line"></i>
@@ -239,11 +229,6 @@ export default function DatLich() {
 
   return (
     <main className="lc">
-      <PageBar
-        title="Đặt lịch dịch vụ"
-        subtitle="Chọn dịch vụ • Chọn giờ • Xác nhận"
-      />
-
       <section className="bk-hero">
         <div className="bk-hero-inner">
           <h1>

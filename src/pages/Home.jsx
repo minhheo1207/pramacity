@@ -2,337 +2,240 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../assets/css/home.css";
+import "../assets/css/thuoc.css";
 import { useAuth } from "../utils/AuthContext";
 import { getAllPosts } from "../services/posts";
-import { NEW_PRODUCTS } from "../data/newProducts";
-import { PRODUCTS, addToCart } from "../services/products";
+import { addToCart } from "../services/products";
+import { getFeaturedProducts, getNewProducts, getCategoriesForHome } from "../services/productApi";
 import QuickViewModal from "../components/QuickViewModal";
+
+const vnd = (n) => {
+  if (n === null || n === undefined || isNaN(n)) {
+    return "0đ";
+  }
+  return Number(n).toLocaleString("vi-VN") + "đ";
+};
 
 export default function Home() {
   const { user } = useAuth();
   const [featuredPosts, setFeaturedPosts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [newProducts, setNewProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [quick, setQuick] = useState(null);
   const [quickTab, setQuickTab] = useState("tong-quan");
-  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    try {
-      const posts = getAllPosts()
-        .sort((a, b) => (b.views || 0) - (a.views || 0))
-        .slice(0, 6);
-      setFeaturedPosts(posts || []);
-    } catch (error) {
-      console.error("Error loading posts:", error);
-      setFeaturedPosts([]);
+    async function loadPosts() {
+      try {
+        const result = await getAllPosts({ sort: 'popular', limit: 6 });
+        setFeaturedPosts(result.posts || []);
+      } catch (error) {
+        console.error("Error loading posts:", error);
+        setFeaturedPosts([]);
+      }
     }
+    loadPosts();
   }, []);
+
+  // Load products from API
+  useEffect(() => {
+    async function loadProducts() {
+      setLoadingProducts(true);
+      try {
+        const [featured, newProds] = await Promise.all([
+          getFeaturedProducts(8).catch(() => []),
+          getNewProducts(8).catch(() => []),
+        ]);
+        setFeaturedProducts(featured || []);
+        setNewProducts(newProds || []);
+      } catch (error) {
+        console.error("Error loading products:", error);
+        setFeaturedProducts([]);
+        setNewProducts([]);
+      } finally {
+        setLoadingProducts(false);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  // Load categories from API
+  useEffect(() => {
+    async function loadCategories() {
+      setLoadingCategories(true);
+      try {
+        const categoriesData = await getCategoriesForHome();
+        const mappedCategories = categoriesData.map((cat) => {
+          const mapping = getCategoryMapping(cat.name);
+          return {
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            description: cat.description,
+            icon: mapping.icon,
+            color: mapping.color,
+            link: `/thuoc?cat=${encodeURIComponent(cat.name)}`,
+            subcategories: mapping.subcategories || [],
+          };
+        });
+        setCategories(mappedCategories);
+      } catch (error) {
+        console.error("Error loading categories:", error);
+        setCategories(getDefaultCategories());
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+    loadCategories();
+  }, []);
+
+  // Mapping function để gán icon và color cho categories từ database
+  function getCategoryMapping(categoryName) {
+    const nameLower = categoryName.toLowerCase();
+    const mappings = {
+      "thực phẩm chức năng": {
+        icon: "ri-medicine-bottle-line",
+        color: "#10b981",
+        subcategories: ["Vitamin & Khoáng chất", "Sinh lý - Nội tiết tố", "Hỗ trợ tiêu hóa"],
+      },
+      "dược mỹ phẩm": {
+        icon: "ri-cream-line",
+        color: "#8b5cf6",
+        subcategories: ["Chăm sóc da mặt", "Chăm sóc cơ thể", "Chăm sóc tóc"],
+      },
+      "chăm sóc da": {
+        icon: "ri-cream-line",
+        color: "#8b5cf6",
+        subcategories: ["Chăm sóc da mặt", "Chăm sóc cơ thể", "Kem dưỡng"],
+      },
+      "thuốc": {
+        icon: "ri-capsule-line",
+        color: "#3b82f6",
+        subcategories: ["Thuốc kê đơn", "Thuốc không kê đơn", "Tra cứu thuốc"],
+      },
+      "thuốc kê đơn": {
+        icon: "ri-capsule-line",
+        color: "#3b82f6",
+        subcategories: ["Thuốc kê đơn", "Theo chỉ định bác sĩ"],
+      },
+      "thuốc không kê đơn": {
+        icon: "ri-capsule-line",
+        color: "#3b82f6",
+        subcategories: ["Thuốc không kê đơn", "Mua tự do"],
+      },
+      "chăm sóc cá nhân": {
+        icon: "ri-user-heart-line",
+        color: "#f59e0b",
+        subcategories: ["Vệ sinh cá nhân", "Chăm sóc răng miệng", "Chăm sóc tóc"],
+      },
+      "thiết bị y tế": {
+        icon: "ri-hospital-line",
+        color: "#ef4444",
+        subcategories: ["Thiết bị đo", "Thiết bị hỗ trợ", "Dụng cụ y tế"],
+      },
+      "khẩu trang": {
+        icon: "ri-mask-line",
+        color: "#06b6d4",
+        subcategories: ["Khẩu trang y tế", "Khẩu trang vải", "Khẩu trang N95"],
+      },
+    };
+
+    for (const [key, value] of Object.entries(mappings)) {
+      if (nameLower.includes(key) || key.includes(nameLower)) {
+        return value;
+      }
+    }
+
+    return {
+      icon: "ri-medicine-bottle-line",
+      color: "#6b7280",
+      subcategories: ["Sản phẩm đa dạng", "Chất lượng cao"],
+    };
+  }
+
+  // Default categories fallback
+  function getDefaultCategories() {
+    return [
+      {
+        id: 1,
+        name: "Thực phẩm chức năng",
+        slug: "thuc-pham-chuc-nang",
+        icon: "ri-medicine-bottle-line",
+        link: "/thuoc",
+        color: "#10b981",
+        subcategories: ["Vitamin & Khoáng chất", "Sinh lý - Nội tiết tố", "Hỗ trợ tiêu hóa"],
+      },
+      {
+        id: 2,
+        name: "Dược mỹ phẩm",
+        slug: "duoc-my-pham",
+        icon: "ri-cream-line",
+        link: "/thuoc",
+        color: "#8b5cf6",
+        subcategories: ["Chăm sóc da mặt", "Chăm sóc cơ thể", "Chăm sóc tóc"],
+      },
+      {
+        id: 3,
+        name: "Thuốc",
+        slug: "thuoc",
+        icon: "ri-capsule-line",
+        link: "/thuoc",
+        color: "#3b82f6",
+        subcategories: ["Thuốc kê đơn", "Thuốc không kê đơn", "Tra cứu thuốc"],
+      },
+      {
+        id: 4,
+        name: "Chăm sóc cá nhân",
+        slug: "cham-soc-ca-nhan",
+        icon: "ri-user-heart-line",
+        link: "/thuoc",
+        color: "#f59e0b",
+        subcategories: ["Vệ sinh cá nhân", "Chăm sóc răng miệng", "Chăm sóc tóc"],
+      },
+      {
+        id: 5,
+        name: "Thiết bị y tế",
+        slug: "thiet-bi-y-te",
+        icon: "ri-hospital-line",
+        link: "/thuoc",
+        color: "#ef4444",
+        subcategories: ["Thiết bị đo", "Thiết bị hỗ trợ", "Dụng cụ y tế"],
+      },
+    ];
+  }
+
+  const stats = [
+    { number: "10,000+", label: "Sản phẩm đa dạng", icon: "ri-box-3-line" },
+    { number: "50,000+", label: "Khách hàng tin dùng", icon: "ri-user-line" },
+    { number: "99%", label: "Độ hài lòng", icon: "ri-star-line" },
+    { number: "24/7", label: "Hỗ trợ tư vấn", icon: "ri-customer-service-2-line" },
+  ];
 
   const features = [
     {
       icon: "ri-truck-line",
       title: "Giao hàng nhanh",
-      description: "Giao trong 2 giờ nội thành",
+      description: "Giao trong 2 giờ nội thành, miễn phí ship đơn trên 300k",
     },
     {
       icon: "ri-shield-check-line",
       title: "Hàng chính hãng",
-      description: "100% sản phẩm chính hãng",
+      description: "100% sản phẩm chính hãng, có giấy phép lưu hành",
     },
     {
       icon: "ri-price-tag-3-line",
       title: "Giá tốt nhất",
-      description: "Cam kết giá rẻ nhất thị trường",
+      description: "Cam kết giá rẻ nhất thị trường, hoàn tiền nếu tìm thấy rẻ hơn",
     },
     {
       icon: "ri-customer-service-2-line",
       title: "Tư vấn 24/7",
-      description: "Hỗ trợ khách hàng mọi lúc",
+      description: "Đội ngũ dược sĩ tư vấn chuyên nghiệp, hỗ trợ mọi lúc",
     },
   ];
-
-  const categories = [
-    {
-      icon: "ri-medicine-bottle-line",
-      title: "Thực phẩm chức năng",
-      link: "/thuoc",
-      color: "#10b981",
-      subcategories: [
-        "Vitamin & Khoáng chất",
-        "Sinh lý - Nội tiết tố",
-        "Hỗ trợ tiêu hóa",
-      ],
-    },
-    {
-      icon: "ri-cream-line",
-      title: "Dược mỹ phẩm",
-      link: "/thuoc",
-      color: "#8b5cf6",
-      subcategories: ["Chăm sóc da mặt", "Chăm sóc cơ thể", "Chăm sóc tóc"],
-    },
-    {
-      icon: "ri-capsule-line",
-      title: "Thuốc",
-      link: "/thuoc",
-      color: "#3b82f6",
-      subcategories: ["Thuốc kê đơn", "Thuốc không kê đơn", "Tra cứu thuốc"],
-    },
-    {
-      icon: "ri-user-heart-line",
-      title: "Chăm sóc cá nhân",
-      link: "/thuoc",
-      color: "#f59e0b",
-      subcategories: ["Vệ sinh cá nhân", "Chăm sóc răng miệng", "Chăm sóc tóc"],
-    },
-    {
-      icon: "ri-hospital-line",
-      title: "Thiết bị y tế",
-      link: "/thuoc",
-      color: "#ef4444",
-      subcategories: ["Thiết bị đo", "Thiết bị hỗ trợ", "Dụng cụ y tế"],
-    },
-  ];
-
-  const aboutPoints = [
-    {
-      icon: "ri-medicine-bottle-line",
-      text: "Thuốc kê đơn & không kê đơn",
-    },
-    {
-      icon: "ri-heart-pulse-line",
-      text: "Thực phẩm chức năng & Vitamin",
-    },
-    {
-      icon: "ri-stethoscope-line",
-      text: "Thiết bị y tế gia đình",
-    },
-    {
-      icon: "ri-shield-star-line",
-      text: "Sản phẩm chăm sóc sức khỏe",
-    },
-  ];
-
-  // Combine aboutPoints and features into one unified grid
-  const allServiceCards = [
-    ...aboutPoints.map((point) => ({
-      icon: point.icon,
-      title: point.text,
-      description: "",
-    })),
-    ...features.map((feature) => ({
-      icon: feature.icon,
-      title: feature.title,
-      description: feature.description,
-    })),
-  ];
-
-  const diseases = [
-    {
-      title: "BỆNH NAM GIỚI",
-      icon: "ri-men-line",
-      items: [
-        "Yếu sinh lý",
-        "Di tinh, mộng tinh",
-        "Hẹp bao quy đầu",
-        "Loãng xương ở nam",
-      ],
-      link: "/bai-viet",
-    },
-    {
-      title: "BỆNH NỮ GIỚI",
-      icon: "ri-women-line",
-      items: [
-        "Hội chứng tiền kinh nguyệt",
-        "Hội chứng tiền mãn kinh",
-        "Chậm kinh",
-        "Mất kinh",
-      ],
-      link: "/bai-viet",
-    },
-    {
-      title: "BỆNH NGƯỜI GIÀ",
-      icon: "ri-user-star-line",
-      items: ["Alzheimer", "Parkinson", "Đục thủy tinh thể", "Loãng xương"],
-      link: "/bai-viet",
-    },
-    {
-      title: "BỆNH TRẺ EM",
-      icon: "ri-parent-line",
-      items: ["Bại não trẻ em", "Tự kỷ", "Uốn ván", "Tắc ruột sơ sinh"],
-      link: "/bai-viet",
-    },
-  ];
-
-  // Get all products
-  const allProducts = [...(PRODUCTS || []), ...(NEW_PRODUCTS || [])];
-
-  // Get featured products for general use (best sellers)
-  const featuredProducts = allProducts
-    .filter((p) => p && (p.sold || 0) > 500)
-    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-    .slice(0, 8);
-
-  // Helper function to filter products by category
-  const filterProductsByCategory = (categories, limit = 6) => {
-    const filtered = allProducts.filter((p) => {
-      if (!p) return false;
-      const productCat = (p.cat || p.tag || "").toLowerCase();
-      const productName = (p.name || "").toLowerCase();
-      return categories.some((cat) => {
-        const catLower = cat.toLowerCase();
-        return productCat.includes(catLower) || productName.includes(catLower);
-      });
-    });
-    const sorted = filtered
-      .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-      .slice(0, limit);
-
-    // Fallback to featured products if no matches found
-    if (sorted.length === 0) {
-      return featuredProducts.slice(0, limit);
-    }
-
-    // If we have less than limit, fill with featured products
-    if (sorted.length < limit) {
-      const remaining = limit - sorted.length;
-      const additional = featuredProducts
-        .filter((p) => !sorted.some((sp) => sp.id === p.id))
-        .slice(0, remaining);
-      return [...sorted, ...additional];
-    }
-
-    return sorted;
-  };
-
-  // Fallback products if no featured products found
-  const displayProducts =
-    featuredProducts.length > 0 ? featuredProducts : allProducts.slice(0, 8);
-
-  // Banner slides data with category-specific products
-  const bannerSlides = [
-    {
-      id: 1,
-      title: "PHÁI MẠNH BẢN LĨNH",
-      subtitle: "Sức khỏe Vững vàng",
-      discounts: [
-        { category: "Dược Mỹ Phẩm", percent: 35 },
-        { category: "TPCN Hàng Nhật Âu Mỹ", percent: 30 },
-      ],
-      productCategories: [
-        "dược mỹ phẩm",
-        "chăm sóc da",
-        "mỹ phẩm",
-        "thực phẩm chức năng",
-        "tpcn",
-      ],
-      bgGradient: "linear-gradient(180deg, #87CEEB 0%, #4682B4 100%)",
-    },
-    {
-      id: 2,
-      title: "SỨC KHỎE GIA ĐÌNH",
-      subtitle: "Chăm sóc toàn diện",
-      discounts: [
-        { category: "Vitamin & Dinh dưỡng", percent: 40 },
-        { category: "Thiết bị y tế", percent: 25 },
-      ],
-      productCategories: [
-        "vitamin",
-        "khoáng",
-        "dinh dưỡng",
-        "thiết bị y tế",
-        "máy đo",
-      ],
-      bgGradient: "linear-gradient(180deg, #10b981 0%, #059669 100%)",
-    },
-    {
-      id: 3,
-      title: "LÀM ĐẸP TỰ NHIÊN",
-      subtitle: "Dưỡng da khỏe mạnh",
-      discounts: [
-        { category: "Chăm sóc da mặt", percent: 30 },
-        { category: "Mỹ phẩm cao cấp", percent: 35 },
-      ],
-      productCategories: [
-        "chăm sóc da",
-        "dưỡng da",
-        "kem",
-        "serum",
-        "mỹ phẩm",
-        "sunscreen",
-      ],
-      bgGradient: "linear-gradient(180deg, #f59e0b 0%, #d97706 100%)",
-    },
-    {
-      id: 4,
-      title: "MEGA SALE 11.11",
-      subtitle: "Giảm đến 50%",
-      discounts: [
-        { category: "Tất cả sản phẩm", percent: 50 },
-        { category: "Freeship toàn quốc", percent: 0 },
-      ],
-      productCategories: [], // All products - best sellers
-      bgGradient: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-    },
-  ].map((slide) => {
-    let products = [];
-    if (slide.productCategories.length > 0) {
-      products = filterProductsByCategory(slide.productCategories, 6);
-    } else {
-      products = featuredProducts.slice(0, 6);
-    }
-    return {
-      ...slide,
-      products,
-    };
-  });
-
-  // Bottom banners - chỉ 2 banners như trong hình
-  const bottomBanners = [
-    {
-      id: 2,
-      title: "HIỂU VỀ UNG THƯ TỪ A-Z",
-      subtitle:
-        "Thông tin được biên soạn và kiểm duyệt bởi đội ngũ chuyên gia y tế",
-      link: "/bai-viet?cat=ung-thu",
-      color: "#fff",
-      bgColor: "#1E3A8A",
-      type: "cancer",
-      logos: ["LONG CHÂU", "Gleneagles Hospital", "Mount Elizabeth"],
-      ribbon: true,
-      hasWorldMap: true,
-    },
-    {
-      id: 3,
-      title: "CẬP NHẬT ĐỊA CHỈ THEO NGHỊ QUYẾT MỚI",
-      subtitle: "HIỂN THỊ ĐỒNG THỜI ĐỊA CHỈ TRƯỚC VÀ SAU SÁP NHẬP",
-      link: "/dia-chi",
-      color: "#1E3A8A",
-      bgColor: "#E0F2FE",
-      type: "address",
-      buttonText: "TRA CỨU NGAY",
-      buttonColor: "#EF4444",
-      mascot: true,
-      hasMap: true,
-      hasHexPattern: true,
-    },
-  ];
-
-  // Auto slide with pause on hover
-  useEffect(() => {
-    if (bannerSlides.length <= 1) return;
-
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % bannerSlides.length);
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [bannerSlides.length]);
-
-  const formatPrice = (price) => {
-    if (typeof price === "number") {
-      return new Intl.NumberFormat("vi-VN").format(price) + "đ";
-    }
-    return price;
-  };
 
   const handleAddToCart = (product) => {
     if (!user) {
@@ -353,13 +256,11 @@ export default function Home() {
   };
 
   const handleQuickView = (product) => {
-    // Calculate discount percentage
     const discountPercent =
       product.old && product.price
         ? Math.round(((product.old - product.price) / product.old) * 100)
         : 0;
 
-    // Convert product format to match QuickViewModal expected format
     const quickViewData = {
       ...product,
       discount: discountPercent,
@@ -381,269 +282,50 @@ export default function Home() {
 
   return (
     <main className="home-page">
-      {/* HERO SECTION - Banner Carousel */}
-      <section className="hero-section">
-        <div className="hero-carousel">
-          {bannerSlides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`hero-slide ${
-                index === currentSlide
-                  ? "active"
-                  : index < currentSlide
-                  ? "prev"
-                  : ""
-              }`}
-              style={{ background: slide.bgGradient }}
-            >
-              <div className="container">
-                <div className="hero-content">
-                  <div className="hero-text">
-                    {/* Brand Logo for Durex */}
-                    {slide.hasBrandLogo && (
-                      <div className="hero-brand-logo">
-                        <span className="brand-text">durex</span>
-                      </div>
-                    )}
-
-                    {/* Decorative elements */}
-                    {!slide.hasBrandLogo && (
-                      <div className="hero-decorations">
-                        <i className="ri-star-fill hero-star"></i>
-                        <div className="hero-king">♔</div>
-                      </div>
-                    )}
-
-                    <h1 className="hero-title">
-                      {slide.title}
-                      <br />
-                      <span className="hero-subtitle">{slide.subtitle}</span>
-                    </h1>
-
-                    {/* Discount banners */}
-                    <div className="discount-banners">
-                      {slide.discounts.map((discount, i) => (
-                        <div
-                          key={i}
-                          className={`discount-banner ${
-                            discount.special ? "discount-banner-special" : ""
-                          }`}
-                        >
-                          {discount.special ? (
-                            <>
-                              <div className="discount-category">
-                                {discount.category}
-                                {discount.text && (
-                                  <span className="discount-text">
-                                    {discount.text}
-                                  </span>
-                                )}
-                              </div>
-                              {discount.percent > 0 ? (
-                                <div className="discount-percent">
-                                  {discount.percent}%
-                                </div>
-                              ) : (
-                                <div className="discount-special-text">
-                                  {discount.category}
-                                </div>
-                              )}
-                            </>
-                          ) : discount.percent > 0 ? (
-                            <>
-                              <div className="discount-category">
-                                {discount.category}
-                              </div>
-                              <div className="discount-label">Giảm đến</div>
-                              <div className="discount-percent">
-                                {discount.percent}%
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="discount-category">
-                                {discount.category}
-                              </div>
-                              <div className="discount-label">Miễn phí</div>
-                              <div className="discount-percent discount-freeship">
-                                FREESHIP
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* CTA Button */}
-                    <Link to="/thuoc" className="btn-buy-now">
-                      <i className="ri-shopping-cart-line"></i>
-                      Mua ngay
-                    </Link>
-                  </div>
-
-                  {/* Products display */}
-                  <div className="hero-products">
-                    <div className="products-display">
-                      {slide.products && slide.products.length > 0
-                        ? slide.products.slice(0, 6).map((product) => (
-                            <div key={product.id} className="product-mini">
-                              <img
-                                src={
-                                  product.img ||
-                                  product.cover ||
-                                  "/img/placeholder.jpg"
-                                }
-                                alt={product.name || "Sản phẩm"}
-                                loading="lazy"
-                                onError={(e) => {
-                                  e.currentTarget.src = "/img/placeholder.jpg";
-                                }}
-                              />
-                            </div>
-                          ))
-                        : // Fallback placeholder products
-                          Array.from({ length: 6 }).map((_, idx) => (
-                            <div
-                              key={`placeholder-${idx}`}
-                              className="product-mini"
-                            >
-                              <img
-                                src="/img/placeholder.jpg"
-                                alt="Sản phẩm"
-                                loading="lazy"
-                              />
-                            </div>
-                          ))}
-                    </div>
-                    {/* Decorative column */}
-                    <div className="hero-column"></div>
-                  </div>
-                </div>
+      {/* HERO SECTION */}
+      <section className="hero-section-modern">
+        <div className="hero-background">
+          <div className="hero-gradient"></div>
+          <div className="hero-pattern"></div>
+        </div>
+        <div className="container">
+          <div className="hero-content-modern">
+            <div className="hero-text-modern">
+              <div className="hero-badge">
+                <i className="ri-medicine-bottle-line"></i>
+                <span>Nền tảng y tế số hàng đầu</span>
+              </div>
+              <h1 className="hero-title-modern">
+                Chăm sóc sức khỏe
+                <br />
+                <span className="gradient-text">toàn diện cho gia đình</span>
+              </h1>
+              <p className="hero-description">
+                PharmaCity cung cấp đầy đủ thuốc, thực phẩm chức năng và thiết bị y tế
+                với chất lượng cao, giá tốt nhất thị trường. Đội ngũ dược sĩ chuyên nghiệp
+                tư vấn 24/7.
+              </p>
+              <div className="hero-actions">
+                <Link to="/thuoc" className="btn-hero-primary">
+                  <i className="ri-shopping-cart-line"></i>
+                  Mua sắm ngay
+                </Link>
+                <Link to="/bai-viet" className="btn-hero-secondary">
+                  <i className="ri-book-open-line"></i>
+                  Tìm hiểu thêm
+                </Link>
               </div>
             </div>
-          ))}
-
-          {/* Carousel controls */}
-          <button
-            className="carousel-btn carousel-btn-prev"
-            onClick={() =>
-              setCurrentSlide(
-                (prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length
-              )
-            }
-            aria-label="Previous slide"
-          >
-            <i className="ri-arrow-left-line"></i>
-          </button>
-          <button
-            className="carousel-btn carousel-btn-next"
-            onClick={() =>
-              setCurrentSlide((prev) => (prev + 1) % bannerSlides.length)
-            }
-            aria-label="Next slide"
-          >
-            <i className="ri-arrow-right-line"></i>
-          </button>
-
-          {/* Carousel dots */}
-          <div className="carousel-dots">
-            {bannerSlides.map((_, index) => (
-              <button
-                key={index}
-                className={`carousel-dot ${
-                  index === currentSlide ? "active" : ""
-                }`}
-                onClick={() => setCurrentSlide(index)}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom banners - Right aligned, 2 banners */}
-        <div className="bottom-banners">
-          <div className="container">
-            <div className="bottom-banners-wrapper">
-              <div className="bottom-banners-grid">
-                {bottomBanners.map((banner) => (
-                  <Link
-                    key={banner.id}
-                    to={banner.link}
-                    className={`bottom-banner bottom-banner-${banner.type}`}
-                    style={{ backgroundColor: banner.bgColor }}
-                  >
-                    {/* World map background for cancer banner */}
-                    {banner.hasWorldMap && <div className="world-map-bg"></div>}
-
-                    {/* Hex pattern for address banner */}
-                    {banner.hasHexPattern && (
-                      <div className="hex-pattern-bg"></div>
-                    )}
-
-                    <div className="bottom-banner-content">
-                      <h3
-                        className="bottom-banner-title"
-                        style={{ color: banner.color }}
-                      >
-                        {banner.title}
-                      </h3>
-                      {banner.subtitle && (
-                        <div className="bottom-banner-subtitle">
-                          {banner.type === "address" ? (
-                            <div className="subtitle-oval">
-                              <p style={{ color: "#fff" }}>{banner.subtitle}</p>
-                            </div>
-                          ) : (
-                            <p style={{ color: "#fff" }}>{banner.subtitle}</p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Logos below subtitle for cancer banner */}
-                      {banner.logos && banner.logos.length > 0 && (
-                        <div className="bottom-banner-logos">
-                          {banner.logos.map((logo, idx) => (
-                            <span key={idx} className="bottom-banner-logo">
-                              {logo}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {banner.buttonText && (
-                        <button
-                          className={`bottom-banner-btn btn-lookup`}
-                          style={{
-                            backgroundColor: banner.buttonColor || "#EF4444",
-                            color: "#fff",
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            window.location.href = banner.link;
-                          }}
-                        >
-                          {banner.buttonText}
-                        </button>
-                      )}
+            <div className="hero-visual">
+              <div className="hero-stats-preview">
+                {stats.slice(0, 3).map((stat, idx) => (
+                  <div key={idx} className="stat-preview-card">
+                    <i className={stat.icon}></i>
+                    <div>
+                      <div className="stat-number">{stat.number}</div>
+                      <div className="stat-label">{stat.label}</div>
                     </div>
-
-                    {/* Visual elements */}
-                    {banner.type === "cancer" && banner.ribbon && (
-                      <div className="cancer-ribbon">🎗️</div>
-                    )}
-                    {banner.type === "address" && banner.mascot && (
-                      <div className="robot-mascot">
-                        <div className="robot-body">🤖</div>
-                      </div>
-                    )}
-                    {banner.type === "address" && banner.hasMap && (
-                      <div className="vietnam-map">
-                        <i className="ri-map-pin-fill"></i>
-                        <i className="ri-map-pin-fill"></i>
-                        <i className="ri-map-pin-fill"></i>
-                      </div>
-                    )}
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
@@ -651,216 +333,249 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CATEGORIES SECTION */}
-      <section className="categories-section">
+      {/* STATS SECTION */}
+      <section className="stats-section">
         <div className="container">
-          <h2 className="section-title">Danh mục sản phẩm</h2>
-          <div className="categories-grid">
-            {categories.map((category, index) => (
-              <Link
-                key={index}
-                to={category.link}
-                className="category-card"
-                style={{ "--category-color": category.color }}
-              >
-                <div
-                  className="category-icon"
-                  style={{ background: category.color }}
-                >
-                  <i className={category.icon}></i>
+          <div className="stats-grid">
+            {stats.map((stat, index) => (
+              <div key={index} className="stat-card">
+                <div className="stat-icon">
+                  <i className={stat.icon}></i>
                 </div>
-                <h3>{category.title}</h3>
-                <ul className="category-subcategories">
-                  {category.subcategories.map((sub, i) => (
-                    <li key={i}>{sub}</li>
-                  ))}
-                </ul>
-                <span className="category-link">
-                  Xem thêm <i className="ri-arrow-right-line"></i>
-                </span>
-              </Link>
+                <div className="stat-content">
+                  <div className="stat-number">{stat.number}</div>
+                  <div className="stat-label">{stat.label}</div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ABOUT SECTION */}
-      <section className="about-section">
+      {/* CATEGORIES SECTION */}
+      <section className="categories-section-modern">
         <div className="container">
-          <div className="about-content">
-            <h2 className="section-title">PharmaCity là gì?</h2>
-            <p className="about-description">
-              <strong>PharmaCity</strong> là nền tảng thương mại điện tử chuyên
-              về thuốc và sản phẩm chăm sóc sức khỏe hàng đầu. Chúng tôi cung
-              cấp đầy đủ các sản phẩm y tế từ thuốc kê đơn, thực phẩm chức năng,
-              đến thiết bị y tế gia đình với cam kết chất lượng và giá cả tốt
-              nhất.
-            </p>
-            <div className="service-cards-grid">
-              {allServiceCards.map((card, index) => (
-                <div key={index} className="service-card">
-                  <div className="service-icon">
-                    <i className={card.icon}></i>
-                  </div>
-                  <h3>{card.title}</h3>
-                  {card.description && <p>{card.description}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PRODUCTS */}
-      <section className="products-section">
-        <div className="container">
-          <div className="section-header">
+          <div className="section-header-modern">
             <div>
-              <h2 className="section-title">🔥 Sản phẩm nổi bật</h2>
-              <p className="section-subtitle">Ưu đãi đặc biệt trong tuần</p>
-            </div>
-            <Link to="/khuyen-mai" className="section-link">
-              Xem tất cả <i className="ri-arrow-right-line"></i>
-            </Link>
-          </div>
-
-          <div className="products-grid">
-            {displayProducts.length > 0 ? (
-              displayProducts.slice(0, 4).map((product) => (
-                <article key={product.id} className="product-card">
-                  {product.sale && (
-                    <span className="product-badge">{product.sale}</span>
-                  )}
-                  <div className="product-image">
-                    <img
-                      src={
-                        product.img || product.cover || "/img/placeholder.jpg"
-                      }
-                      alt={product.name || "Sản phẩm"}
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.src = "/img/placeholder.jpg";
-                      }}
-                    />
-                  </div>
-                  <div className="product-content">
-                    {product.cat && (
-                      <span className="product-category">{product.cat}</span>
-                    )}
-                    <h3 className="product-name">
-                      {product.name || "Sản phẩm"}
-                    </h3>
-                    <div className="product-price">
-                      {product.old && (
-                        <span className="price-old">
-                          {formatPrice(product.old)}
-                        </span>
-                      )}
-                      <span className="price-current">
-                        {formatPrice(product.price || 0)}
-                      </span>
-                    </div>
-                    <div className="product-rating">
-                      <div className="stars">
-                        <i className="ri-star-fill"></i>
-                        <span>{product.rating || 4.5}</span>
-                      </div>
-                      <span className="sold-count">
-                        Đã bán {product.sold || 0}
-                      </span>
-                    </div>
-                    <div className="product-separator"></div>
-                    <button
-                      className="btn-add-cart"
-                      onClick={() => handleAddToCart(product)}
-                    >
-                      <i className="ri-shopping-cart-line"></i>
-                      Thêm vào giỏ
-                    </button>
-                    <div className="product-actions">
-                      <button
-                        className="btn-action"
-                        onClick={() => handleQuickView(product)}
-                      >
-                        <i className="ri-eye-line"></i>
-                        Xem nhanh
-                      </button>
-                      <Link
-                        to={`/san-pham/${product.id}`}
-                        className="btn-action"
-                      >
-                        <i className="ri-file-list-line"></i>
-                        Chi tiết
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="products-empty">
-                <p>Chưa có sản phẩm nào</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* DISEASES SECTION */}
-      <section className="diseases-section">
-        <div className="container">
-          <div className="section-header">
-            <div>
-              <h2 className="section-title">Bệnh</h2>
-              <p className="section-subtitle">
-                Thông tin về các bệnh thường gặp
+              <h2 className="section-title-modern">Danh mục sản phẩm</h2>
+              <p className="section-subtitle-modern">
+                Khám phá đầy đủ các danh mục sản phẩm chăm sóc sức khỏe
               </p>
             </div>
-            <Link to="/bai-viet" className="section-link">
+            <Link to="/thuoc" className="section-link-modern">
               Xem tất cả <i className="ri-arrow-right-line"></i>
             </Link>
           </div>
-          <div className="diseases-grid">
-            {diseases.map((disease, index) => (
-              <div key={index} className="disease-card">
-                <div className="disease-header">
-                  <i className={disease.icon}></i>
-                  <h3>{disease.title}</h3>
+          {loadingCategories ? (
+            <div className="loading-state">
+              <p>Đang tải danh mục...</p>
+            </div>
+          ) : (
+            <div className="categories-grid-modern">
+              {categories.length > 0 ? (
+                categories.map((category) => (
+                  <Link
+                    key={category.id}
+                    to={category.link}
+                    className="category-card-modern"
+                    style={{ "--category-color": category.color }}
+                  >
+                    <div className="category-icon-modern" style={{ background: category.color }}>
+                      <i className={category.icon}></i>
+                    </div>
+                    <div className="category-info">
+                      <h3>{category.name}</h3>
+                      {category.subcategories && category.subcategories.length > 0 && (
+                        <ul className="category-subs">
+                          {category.subcategories.slice(0, 3).map((sub, i) => (
+                            <li key={i}>{sub}</li>
+                          ))}
+                        </ul>
+                      )}
+                      <span className="category-link-modern">
+                        Xem thêm <i className="ri-arrow-right-line"></i>
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>Chưa có danh mục nào</p>
                 </div>
-                <ul className="disease-list">
-                  {disease.items.map((item, i) => (
-                    <li key={i}>
-                      <Link to={disease.link}>{item}</Link>
-                    </li>
-                  ))}
-                </ul>
-                <Link to={disease.link} className="disease-link">
-                  Tìm hiểu thêm <i className="ri-arrow-right-line"></i>
-                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* FEATURES SECTION */}
+      <section className="features-section">
+        <div className="container">
+          <div className="section-header-modern">
+            <div>
+              <h2 className="section-title-modern">Tại sao chọn PharmaCity?</h2>
+              <p className="section-subtitle-modern">
+                Cam kết mang đến dịch vụ tốt nhất cho khách hàng
+              </p>
+            </div>
+          </div>
+          <div className="features-grid">
+            {features.map((feature, index) => (
+              <div key={index} className="feature-card">
+                <div className="feature-icon">
+                  <i className={feature.icon}></i>
+                </div>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* PRODUCTS SECTION */}
+      <section className="products-section-modern">
+        <div className="container">
+          <div className="section-header-modern">
+            <div>
+              <h2 className="section-title-modern">🔥 Sản phẩm nổi bật</h2>
+              <p className="section-subtitle-modern">Ưu đãi đặc biệt trong tuần</p>
+            </div>
+            <Link to="/khuyen-mai" className="section-link-modern">
+              Xem tất cả <i className="ri-arrow-right-line"></i>
+            </Link>
+          </div>
+
+          {loadingProducts ? (
+            <div className="loading-state">
+              <p>Đang tải sản phẩm...</p>
+            </div>
+          ) : (
+            <div className="t-grid">
+              {featuredProducts.length > 0 ? (
+                featuredProducts.slice(0, 4).map((product) => (
+                  <article key={product.id} className="t-card">
+                    <div className="t-thumb">
+                      <img
+                        src={product.cover || product.img || "/img/placeholder.jpg"}
+                        alt={product.name || "Sản phẩm"}
+                        onError={(e) => {
+                          e.currentTarget.src = "/img/placeholder.jpg";
+                        }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                      {product.discount > 0 && (
+                        <span className="t-badge t-badge--sale">
+                          -{product.discount}%
+                        </span>
+                      )}
+                      {product.tag && (
+                        <span className="t-badge t-badge--tag">{product.tag}</span>
+                      )}
+                    </div>
+
+                    <div className="t-body">
+                      <h3 className="t-title" title={product.name}>
+                        <Link
+                          to={`/san-pham/${product.id}`}
+                          style={{
+                            color: "inherit",
+                            textDecoration: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {product.name || "Sản phẩm"}
+                        </Link>
+                      </h3>
+
+                      <div className="t-price">
+                        <b>{vnd(product.price || 0)}</b>
+                        {product.oldPrice && <s>{vnd(product.oldPrice)}</s>}
+                      </div>
+
+                      <div className="t-meta">
+                        <span className="rate">
+                          <i className="ri-star-fill" />{" "}
+                          {(product.rating || 0).toFixed(1)}
+                        </span>
+                        <span className="sold">
+                          Đã bán {(product.sold || 0).toLocaleString("vi-VN")}
+                        </span>
+                      </div>
+
+                      <div className="t-hot">
+                        <span
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              Math.round(((product.sold || 0) / 5000) * 100)
+                            )}%`,
+                          }}
+                        />
+                      </div>
+
+                      <div className="t-actions">
+                        <button
+                          className="btn btn--buy"
+                          onClick={() => handleAddToCart(product)}
+                        >
+                          <i className="ri-shopping-cart-2-line" /> Thêm vào giỏ
+                        </button>
+                        <button
+                          className="btn btn--ghost"
+                          onClick={() => handleQuickView(product)}
+                        >
+                          <i className="ri-eye-line" /> Xem nhanh
+                        </button>
+                        <Link
+                          className="btn btn--ghost"
+                          to={`/san-pham/${product.id}`}
+                          style={{
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <i className="ri-file-list-line" /> Chi tiết
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="empty-state" style={{ gridColumn: "1 / -1" }}>
+                  <p>Chưa có sản phẩm nào</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
       {/* BLOG SECTION */}
-      <section className="blog-section">
+      <section className="blog-section-modern">
         <div className="container">
-          <div className="section-header">
+          <div className="section-header-modern">
             <div>
-              <h2 className="section-title">📰 Góc sức khỏe</h2>
-              <p className="section-subtitle">
-                Kiến thức y tế và mẹo sống khỏe
+              <h2 className="section-title-modern">📰 Góc sức khỏe</h2>
+              <p className="section-subtitle-modern">
+                Kiến thức y tế và mẹo sống khỏe từ chuyên gia
               </p>
             </div>
-            <Link to="/bai-viet" className="section-link">
+            <Link to="/bai-viet" className="section-link-modern">
               Xem tất cả <i className="ri-arrow-right-line"></i>
             </Link>
           </div>
-          <div className="blog-grid">
+          <div className="blog-grid-modern">
             {featuredPosts.length > 0 ? (
               featuredPosts.slice(0, 4).map((post) => (
-                <article key={post.id} className="blog-card">
-                  <div className="blog-image">
+                <article key={post.id} className="blog-card-modern">
+                  <div className="blog-image-modern">
                     <img
                       src={post.cover || "/img/placeholder.jpg"}
                       alt={post.title || "Bài viết"}
@@ -871,7 +586,7 @@ export default function Home() {
                     />
                     {post.cat && (
                       <span
-                        className={`blog-badge blog-badge--${
+                        className={`blog-badge-modern blog-badge--${
                           post.cat === "Dinh dưỡng"
                             ? "green"
                             : post.cat === "Bệnh lý"
@@ -887,27 +602,24 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-                  <div className="blog-content">
-                    <h3 className="blog-title">
+                  <div className="blog-content-modern">
+                    <h3 className="blog-title-modern">
                       <Link to={`/bai-viet/${post.id}`}>
                         {post.title || "Bài viết"}
                       </Link>
                     </h3>
-                    <p className="blog-excerpt">{post.excerpt || ""}</p>
-                    <div className="blog-meta">
+                    <p className="blog-excerpt-modern">{post.excerpt || ""}</p>
+                    <div className="blog-meta-modern">
                       {post.date && (
                         <span className="blog-date">
+                          <i className="ri-calendar-line"></i>
                           {new Date(post.date).toLocaleDateString("vi-VN")}
                         </span>
                       )}
                       {post.readMin && (
                         <span className="blog-read">
+                          <i className="ri-time-line"></i>
                           {post.readMin} phút đọc
-                        </span>
-                      )}
-                      {post.views && (
-                        <span className="blog-views">
-                          {post.views} lượt xem
                         </span>
                       )}
                     </div>
@@ -915,7 +627,7 @@ export default function Home() {
                 </article>
               ))
             ) : (
-              <div className="blog-empty">
+              <div className="empty-state">
                 <p>Chưa có bài viết nào</p>
               </div>
             )}
@@ -924,17 +636,23 @@ export default function Home() {
       </section>
 
       {/* CTA SECTION */}
-      <section className="cta-section">
+      <section className="cta-section-modern">
         <div className="container">
-          <div className="cta-content">
+          <div className="cta-content-modern">
             <h2>Sẵn sàng bắt đầu mua sắm?</h2>
             <p>
               Khám phá hàng ngàn sản phẩm chăm sóc sức khỏe với giá tốt nhất
+              và dịch vụ chuyên nghiệp
             </p>
-            <Link to="/thuoc" className="btn btn-cta">
-              Xem tất cả sản phẩm
-              <i className="ri-arrow-right-line"></i>
-            </Link>
+            <div className="cta-actions">
+              <Link to="/thuoc" className="btn-cta-primary">
+                Xem tất cả sản phẩm
+                <i className="ri-arrow-right-line"></i>
+              </Link>
+              <Link to="/bai-viet" className="btn-cta-secondary">
+                Đọc bài viết sức khỏe
+              </Link>
+            </div>
           </div>
         </div>
       </section>

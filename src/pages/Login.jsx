@@ -9,14 +9,57 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: "",
+    password: "",
+  });
+  const [touchedFields, setTouchedFields] = useState({
+    email: false,
+    password: false,
+  });
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setLoading(true);
+    
     const data = Object.fromEntries(new FormData(e.currentTarget));
+    const newFieldErrors = {
+      email: "",
+      password: "",
+    };
+    
+    let hasErrors = false;
+    
+    // Validate email
+    if (!data.email || !data.email.trim()) {
+      newFieldErrors.email = "Vui lòng nhập email";
+      hasErrors = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+      newFieldErrors.email = "Email không hợp lệ";
+      hasErrors = true;
+    }
+    
+    // Validate password
+    if (!data.password || !data.password.trim()) {
+      newFieldErrors.password = "Vui lòng nhập mật khẩu";
+      hasErrors = true;
+    }
+    
+    // Mark all fields as touched when submitting
+    setTouchedFields({
+      email: true,
+      password: true,
+    });
+    setFieldErrors(newFieldErrors);
+
+    if (hasErrors) {
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const user = await login({ email: data.email, password: data.password });
+      const user = await login({ email: data.email.trim(), password: data.password });
       // Redirect dựa trên role
       if (user.role === "admin") {
         navigate("/admin");
@@ -116,7 +159,34 @@ export default function Login() {
                 required
                 placeholder="Nhập email của bạn"
                 disabled={loading}
+                className={fieldErrors.email ? "error" : ""}
+                onChange={(e) => {
+                  if (touchedFields.email) {
+                    const email = e.target.value.trim();
+                    if (!email) {
+                      setFieldErrors({ ...fieldErrors, email: "Vui lòng nhập email" });
+                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      setFieldErrors({ ...fieldErrors, email: "Email không hợp lệ" });
+                    } else {
+                      setFieldErrors({ ...fieldErrors, email: "" });
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  setTouchedFields({ ...touchedFields, email: true });
+                  const email = e.target.value.trim();
+                  if (!email) {
+                    setFieldErrors({ ...fieldErrors, email: "Vui lòng nhập email" });
+                  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setFieldErrors({ ...fieldErrors, email: "Email không hợp lệ" });
+                  } else {
+                    setFieldErrors({ ...fieldErrors, email: "" });
+                  }
+                }}
               />
+              {fieldErrors.email && (
+                <span className="field-error">{fieldErrors.email}</span>
+              )}
             </div>
 
             <div className="form-group">
@@ -150,9 +220,28 @@ export default function Login() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={4}
                   placeholder="Nhập mật khẩu"
                   disabled={loading}
+                  className={fieldErrors.password ? "error" : ""}
+                  onChange={(e) => {
+                    if (touchedFields.password) {
+                      const password = e.target.value;
+                      if (!password || !password.trim()) {
+                        setFieldErrors({ ...fieldErrors, password: "Vui lòng nhập mật khẩu" });
+                      } else {
+                        setFieldErrors({ ...fieldErrors, password: "" });
+                      }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    setTouchedFields({ ...touchedFields, password: true });
+                    const password = e.target.value;
+                    if (!password || !password.trim()) {
+                      setFieldErrors({ ...fieldErrors, password: "Vui lòng nhập mật khẩu" });
+                    } else {
+                      setFieldErrors({ ...fieldErrors, password: "" });
+                    }
+                  }}
                 />
                 <button
                   type="button"
@@ -202,6 +291,9 @@ export default function Login() {
                   )}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <span className="field-error">{fieldErrors.password}</span>
+              )}
             </div>
 
             <button

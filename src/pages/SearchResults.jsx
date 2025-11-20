@@ -1,7 +1,6 @@
 // src/pages/SearchResults.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import PageBar from "../components/PageBar";
 import Frame from "../components/Frame";
 import QuickViewModal from "../components/QuickViewModal";
 import { searchAll } from "../services/search";
@@ -47,23 +46,9 @@ const MEDICINE_TYPES = [
   "Thực phẩm chức năng",
 ];
 
-const COUNTRIES = [
-  "Tất cả",
-  "Việt Nam",
-  "Mỹ",
-  "Pháp",
-  "Đức",
-  "Nhật Bản",
-];
+const COUNTRIES = ["Tất cả", "Việt Nam", "Mỹ", "Pháp", "Đức", "Nhật Bản"];
 
-const BRAND_ORIGINS = [
-  "Tất cả",
-  "Việt Nam",
-  "Mỹ",
-  "Pháp",
-  "Đức",
-  "Nhật Bản",
-];
+const BRAND_ORIGINS = ["Tất cả", "Việt Nam", "Mỹ", "Pháp", "Đức", "Nhật Bản"];
 
 const SORT_OPTIONS = [
   { id: "bestselling", label: "Bán chạy" },
@@ -76,11 +61,11 @@ export default function SearchResults() {
   const query = searchParams.get("q") || "";
   const searchType = searchParams.get("type") || "products"; // "products" or "posts"
 
-  const [page, setPage] = useState(1);
   const [quick, setQuick] = useState(null);
   const [quickTab, setQuickTab] = useState("tong-quan");
   const [sortBy, setSortBy] = useState("bestselling");
   const [displayMode, setDisplayMode] = useState("grid"); // "grid" or "list"
+  const [displayCount, setDisplayCount] = useState(16);
 
   // Filter states
   const [productType, setProductType] = useState("Tất cả");
@@ -93,12 +78,13 @@ export default function SearchResults() {
   const [country, setCountry] = useState("Tất cả");
   const [brand, setBrand] = useState("Tất cả");
   const [brandOrigin, setBrandOrigin] = useState("Tất cả");
+  const [brandSearch, setBrandSearch] = useState("");
 
   // Collapsible filter states
   const [expandedFilters, setExpandedFilters] = useState({
     productType: true,
     targetAudience: true,
-    price: false,
+    price: true,
     indication: false,
     medicineType: false,
     country: false,
@@ -182,22 +168,15 @@ export default function SearchResults() {
       products,
       total: products.length,
     };
-  }, [
-    searchResults,
-    productType,
-    brand,
-    minPrice,
-    maxPrice,
-    sortBy,
-  ]);
+  }, [searchResults, productType, brand, minPrice, maxPrice, sortBy]);
 
   const total = filteredResults.total;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const displayedProducts = filteredResults.products.slice(0, displayCount);
+  const hasMore = total > displayCount;
 
-  const pageItems = filteredResults.products.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
+  const handleShowMore = () => {
+    setDisplayCount((prev) => Math.min(prev + 16, total));
+  };
 
   const toggleFilter = (filterKey) => {
     setExpandedFilters((prev) => ({
@@ -224,21 +203,28 @@ export default function SearchResults() {
     setCountry("Tất cả");
     setBrand("Tất cả");
     setBrandOrigin("Tất cả");
-    setPage(1);
+    setBrandSearch("");
+    setDisplayCount(16);
   };
 
   const handleSearchTypeChange = (type) => {
     setSearchParams({ q: query, type });
-    setPage(1);
+    setDisplayCount(16);
   };
 
   const fmt = (n) => n.toLocaleString("vi-VN") + "₫";
   const getUnit = (product) => {
     // Determine unit based on product name or category
-    if (product.name?.toLowerCase().includes("siro") || product.name?.toLowerCase().includes("dung dịch")) {
+    if (
+      product.name?.toLowerCase().includes("siro") ||
+      product.name?.toLowerCase().includes("dung dịch")
+    ) {
       return "Chai";
     }
-    if (product.name?.toLowerCase().includes("viên") || product.name?.toLowerCase().includes("vỉ")) {
+    if (
+      product.name?.toLowerCase().includes("viên") ||
+      product.name?.toLowerCase().includes("vỉ")
+    ) {
       return "Hộp";
     }
     return "Hộp";
@@ -266,9 +252,7 @@ export default function SearchResults() {
           onClick={() => toggleFilter(key)}
         >
           <span>{title}</span>
-          <i
-            className={`ri-arrow-${isExpanded ? "up" : "down"}-s-line`}
-          ></i>
+          <i className={`ri-arrow-${isExpanded ? "up" : "down"}-s-line`}></i>
         </button>
         {isExpanded && (
           <div className="filter-section__content">
@@ -291,7 +275,7 @@ export default function SearchResults() {
                     checked={selected === option}
                     onChange={() => {
                       onSelect(option);
-                      setPage(1);
+                      setDisplayCount(16);
                     }}
                   />
                   <span>{option}</span>
@@ -317,15 +301,6 @@ export default function SearchResults() {
 
   return (
     <main className="search-results-page">
-      <PageBar
-        title={`Kết quả tìm kiếm${query ? `: "${query}"` : ""}`}
-        subtitle={
-          query
-            ? `Tìm thấy ${total.toLocaleString()} kết quả`
-            : "Nhập từ khóa để tìm kiếm sản phẩm và bài viết"
-        }
-      />
-
       <div className="container">
         <div className="search-results-wrap">
           {/* Search Type Header */}
@@ -359,9 +334,139 @@ export default function SearchResults() {
           <div className="search-results-layout">
             {/* Filter Sidebar */}
             <aside className="search-filters">
-              <Frame title="Bộ lọc nâng cao">
+              <Frame>
+                <div className="filter-header">
+                  <span className="filter-header__title">Bộ lọc</span>
+                  <button
+                    className="filter-header__reset"
+                    onClick={resetFilters}
+                  >
+                    Thiết lập lại
+                  </button>
+                </div>
                 {searchType === "products" && (
                   <>
+                    <div className="filter-section">
+                      <button
+                        className="filter-section__header"
+                        onClick={() => toggleFilter("price")}
+                      >
+                        <span>Khoảng giá</span>
+                        <i
+                          className={`ri-arrow-${
+                            expandedFilters.price ? "up" : "down"
+                          }-s-line`}
+                        ></i>
+                      </button>
+                      {expandedFilters.price && (
+                        <div className="filter-section__content">
+                          <div className="price-range">
+                            <div className="price-range__inputs">
+                              <div className="price-range__input-wrapper">
+                                <input
+                                  type="number"
+                                  placeholder="Tối thiểu"
+                                  value={minPrice}
+                                  onChange={(e) => {
+                                    setMinPrice(e.target.value);
+                                  }}
+                                />
+                              </div>
+                              <div className="price-range__input-wrapper">
+                                <input
+                                  type="number"
+                                  placeholder="Tối đa"
+                                  value={maxPrice}
+                                  onChange={(e) => {
+                                    setMaxPrice(e.target.value);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <button
+                              className="price-range__apply"
+                              onClick={() => setPage(1)}
+                            >
+                              Áp dụng
+                            </button>
+                            <div className="price-range__options">
+                              <label className="price-range__option">
+                                <input
+                                  type="radio"
+                                  name="priceRange"
+                                  checked={!minPrice && !maxPrice}
+                                  onChange={() => {
+                                    setMinPrice("");
+                                    setMaxPrice("");
+                                    setDisplayCount(16);
+                                  }}
+                                />
+                                <span>Tất cả</span>
+                              </label>
+                              <label className="price-range__option">
+                                <input
+                                  type="radio"
+                                  name="priceRange"
+                                  checked={!minPrice && maxPrice === "100000"}
+                                  onChange={() => {
+                                    setMinPrice("");
+                                    setMaxPrice("100000");
+                                    setDisplayCount(16);
+                                  }}
+                                />
+                                <span>Dưới 100.000 ₫</span>
+                              </label>
+                              <label className="price-range__option">
+                                <input
+                                  type="radio"
+                                  name="priceRange"
+                                  checked={
+                                    minPrice === "100000" &&
+                                    maxPrice === "300000"
+                                  }
+                                  onChange={() => {
+                                    setMinPrice("100000");
+                                    setMaxPrice("300000");
+                                    setDisplayCount(16);
+                                  }}
+                                />
+                                <span>100.000 ₫ - 300.000 ₫</span>
+                              </label>
+                              <label className="price-range__option">
+                                <input
+                                  type="radio"
+                                  name="priceRange"
+                                  checked={
+                                    minPrice === "300000" &&
+                                    maxPrice === "500000"
+                                  }
+                                  onChange={() => {
+                                    setMinPrice("300000");
+                                    setMaxPrice("500000");
+                                    setDisplayCount(16);
+                                  }}
+                                />
+                                <span>300.000 ₫ - 500.000 ₫</span>
+                              </label>
+                              <label className="price-range__option">
+                                <input
+                                  type="radio"
+                                  name="priceRange"
+                                  checked={minPrice === "500000" && !maxPrice}
+                                  onChange={() => {
+                                    setMinPrice("500000");
+                                    setMaxPrice("");
+                                    setDisplayCount(16);
+                                  }}
+                                />
+                                <span>Trên 500.000 ₫</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {renderFilterSection(
                       "productType",
                       "Loại sản phẩm",
@@ -380,45 +485,6 @@ export default function SearchResults() {
                       targetAudienceSearch,
                       setTargetAudienceSearch
                     )}
-
-                    <div className="filter-section">
-                      <button
-                        className="filter-section__header"
-                        onClick={() => toggleFilter("price")}
-                      >
-                        <span>Giá bán</span>
-                        <i
-                          className={`ri-arrow-${
-                            expandedFilters.price ? "up" : "down"
-                          }-s-line`}
-                        ></i>
-                      </button>
-                      {expandedFilters.price && (
-                        <div className="filter-section__content">
-                          <div className="price-range">
-                            <input
-                              type="number"
-                              placeholder="Từ"
-                              value={minPrice}
-                              onChange={(e) => {
-                                setMinPrice(e.target.value);
-                                setPage(1);
-                              }}
-                            />
-                            <span>-</span>
-                            <input
-                              type="number"
-                              placeholder="Đến"
-                              value={maxPrice}
-                              onChange={(e) => {
-                                setMaxPrice(e.target.value);
-                                setPage(1);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
                     {renderFilterSection(
                       "indication",
@@ -444,13 +510,67 @@ export default function SearchResults() {
                       setCountry
                     )}
 
-                    {renderFilterSection(
-                      "brand",
-                      "Thương hiệu",
-                      brands,
-                      brand,
-                      setBrand
-                    )}
+                    <div className="filter-section">
+                      <button
+                        className="filter-section__header"
+                        onClick={() => toggleFilter("brand")}
+                      >
+                        <span>Thương hiệu</span>
+                        <i
+                          className={`ri-arrow-${
+                            expandedFilters.brand ? "up" : "down"
+                          }-s-line`}
+                        ></i>
+                      </button>
+                      {expandedFilters.brand && (
+                        <div className="filter-section__content">
+                          <div className="filter-search">
+                            <i className="ri-search-line"></i>
+                            <input
+                              type="text"
+                              placeholder="Nhập tên thương hiệu"
+                              value={brandSearch || ""}
+                              onChange={(e) => setBrandSearch(e.target.value)}
+                            />
+                          </div>
+                          <div className="filter-checkboxes">
+                            {(brandSearch
+                              ? brands.filter((b) =>
+                                  b
+                                    .toLowerCase()
+                                    .includes(brandSearch.toLowerCase())
+                                )
+                              : brands.slice(0, 5)
+                            ).map((b) => (
+                              <label key={b} className="filter-checkbox">
+                                <input
+                                  type="checkbox"
+                                  checked={brand === b}
+                                  onChange={() => {
+                                    setBrand(b);
+                                    setDisplayCount(16);
+                                  }}
+                                />
+                                <span>{b}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {brands.length > 5 && (
+                            <button
+                              className="filter-show-more"
+                              onClick={() => toggleShowMore("brand")}
+                            >
+                              Xem thêm
+                              <i
+                                className={`ri-arrow-${
+                                  showMore.brand ? "up" : "down"
+                                }-s-line`}
+                              ></i>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     {renderFilterSection(
                       "brandOrigin",
@@ -461,14 +581,6 @@ export default function SearchResults() {
                     )}
                   </>
                 )}
-
-                <button
-                  className="btn btn--ghost btn--full"
-                  onClick={resetFilters}
-                >
-                  <i className="ri-refresh-line"></i>
-                  Đặt lại bộ lọc
-                </button>
               </Frame>
             </aside>
 
@@ -492,7 +604,7 @@ export default function SearchResults() {
                           }`}
                           onClick={() => {
                             setSortBy(option.id);
-                            setPage(1);
+                            setDisplayCount(16);
                           }}
                         >
                           {option.label}
@@ -502,14 +614,18 @@ export default function SearchResults() {
                   </div>
                   <div className="display-mode">
                     <button
-                      className={`display-btn ${displayMode === "grid" ? "active" : ""}`}
+                      className={`display-btn ${
+                        displayMode === "grid" ? "active" : ""
+                      }`}
                       onClick={() => setDisplayMode("grid")}
                       title="Lưới"
                     >
                       <i className="ri-grid-line"></i>
                     </button>
                     <button
-                      className={`display-btn ${displayMode === "list" ? "active" : ""}`}
+                      className={`display-btn ${
+                        displayMode === "list" ? "active" : ""
+                      }`}
                       onClick={() => setDisplayMode("list")}
                       title="Danh sách"
                     >
@@ -541,9 +657,10 @@ export default function SearchResults() {
                       displayMode === "list" ? "list-mode" : ""
                     }`}
                   >
-                    {pageItems.map((p) => {
+                    {displayedProducts.map((p) => {
                       const unit = getUnit(p);
-                      const needsConsultation = p.cat?.includes("kê đơn") || false;
+                      const needsConsultation =
+                        p.cat?.includes("kê đơn") || false;
                       return (
                         <div
                           key={`product-${p.id}`}
@@ -582,7 +699,9 @@ export default function SearchResults() {
                                 {p.name?.includes("x") && (
                                   <span className="unit-detail">
                                     {" "}
-                                    {p.name.match(/x\s*\d+[ml|viên|vỉ]*/i)?.[0] || ""}
+                                    {p.name.match(
+                                      /x\s*\d+[ml|viên|vỉ]*/i
+                                    )?.[0] || ""}
                                   </span>
                                 )}
                               </div>
@@ -618,48 +737,15 @@ export default function SearchResults() {
                     })}
                   </div>
 
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="pagination">
+                  {/* Nút Xem thêm */}
+                  {hasMore && (
+                    <div className="show-more-products">
                       <button
-                        className="pagination__btn"
-                        disabled={page === 1}
-                        onClick={() => setPage(page - 1)}
+                        className="btn-show-more-products"
+                        onClick={handleShowMore}
                       >
-                        <i className="ri-arrow-left-s-line"></i>
-                        Trước
-                      </button>
-                      <div className="pagination__pages">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1)
-                          .filter(
-                            (p) =>
-                              p === 1 ||
-                              p === totalPages ||
-                              (p >= page - 1 && p <= page + 1)
-                          )
-                          .map((p, idx, arr) => (
-                            <React.Fragment key={p}>
-                              {idx > 0 && arr[idx - 1] !== p - 1 && (
-                                <span className="pagination__ellipsis">...</span>
-                              )}
-                              <button
-                                className={`pagination__page ${
-                                  page === p ? "active" : ""
-                                }`}
-                                onClick={() => setPage(p)}
-                              >
-                                {p}
-                              </button>
-                            </React.Fragment>
-                          ))}
-                      </div>
-                      <button
-                        className="pagination__btn"
-                        disabled={page === totalPages}
-                        onClick={() => setPage(page + 1)}
-                      >
-                        Sau
-                        <i className="ri-arrow-right-s-line"></i>
+                        Xem thêm
+                        <i className="ri-arrow-down-s-line"></i>
                       </button>
                     </div>
                   )}
@@ -682,4 +768,3 @@ export default function SearchResults() {
     </main>
   );
 }
-

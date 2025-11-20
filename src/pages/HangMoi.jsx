@@ -1,27 +1,20 @@
 // src/pages/HangMoi.jsx
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import PageBar from "../components/PageBar";
 import QuickViewModal from "../components/QuickViewModal";
 import { addToCart } from "../services/products";
-import { NEW_PRODUCTS as NEW_PRODUCTS_DATA } from "../data/newProducts";
+import { getNewProducts } from "../services/productApi";
 import "../assets/css/hangmoi.css";
 
 // Map category từ cat để hiển thị
 const CATEGORY_MAP = {
+  "Vitamin": "health",
   "Vitamin/ khoáng": "health",
   "Chăm sóc da": "skin",
   "Cho bé": "kids",
   "Khẩu trang": "health", // Khẩu trang thuộc nhóm sức khỏe
+  "Thiết bị y tế": "health",
 };
-
-// Convert data từ newProducts.js sang format cho HangMoi
-const NEW_PRODUCTS = NEW_PRODUCTS_DATA.map((p) => ({
-  ...p,
-  oldPrice: p.old,
-  category: CATEGORY_MAP[p.cat] || "health",
-  badge: p.sale ? (p.sold > 5000 ? "hot" : "new") : null,
-}));
 
 const TAGS = [
   { key: "all", label: "Tất cả" },
@@ -77,7 +70,33 @@ export default function HangMoi() {
   const [page, setPage] = useState(1);
   const [quick, setQuick] = useState(null);
   const [quickTab, setQuickTab] = useState("tong-quan");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const PAGE_SIZE = 8;
+
+  // Load products from API
+  useEffect(() => {
+    async function loadProducts() {
+      setLoading(true);
+      try {
+        const data = await getNewProducts(100); // Get more for filtering
+        // Map products to include category
+        const mapped = (data || []).map((p) => ({
+          ...p,
+          oldPrice: p.old || p.oldPrice,
+          category: CATEGORY_MAP[p.cat || p.tag] || "health",
+          badge: p.sale ? ((p.sold || 0) > 5000 ? "hot" : "new") : null,
+        }));
+        setProducts(mapped);
+      } catch (error) {
+        console.error("Error loading products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
 
   const scrollBy = (dx) => {
     if (!sliderRef.current) return;
@@ -85,7 +104,7 @@ export default function HangMoi() {
   };
 
   // lọc theo tag
-  const filtered = NEW_PRODUCTS.filter((p) =>
+  const filtered = products.filter((p) =>
     activeTag === "all" ? true : p.category === activeTag
   );
 
@@ -107,10 +126,6 @@ export default function HangMoi() {
 
   return (
     <main className="lc new-products">
-      <PageBar
-        title="Hàng Mới Về"
-        subtitle="Các sản phẩm mới cập nhật, chính hãng – được khách hàng tin dùng"
-      />
 
       {/* HERO */}
       <section className="np-hero">
@@ -173,7 +188,7 @@ export default function HangMoi() {
             const discountPercent = offPercent(p);
             // Lấy category label từ cat nếu có, nếu không thì dùng category
             const categoryLabel = getCategoryLabel(p);
-            const progressValue = Math.min(100, (p.sold / 10000) * 100); // Progress based on sales
+            const progressValue = Math.min(100, ((p.sold || 0) / 10000) * 100); // Progress based on sales
 
             return (
               <article className="np-card" key={p.id}>
@@ -217,10 +232,10 @@ export default function HangMoi() {
 
                   <div className="np-rating-row">
                     <span className="np-rating">
-                      <i className="ri-star-fill" /> {p.rating.toFixed(1)}
+                      <i className="ri-star-fill" /> {(p.rating || 0).toFixed(1)}
                     </span>
                     <span className="np-sold">
-                      Đã bán {p.sold.toLocaleString("vi-VN")}
+                      Đã bán {(p.sold || 0).toLocaleString("vi-VN")}
                     </span>
                   </div>
 

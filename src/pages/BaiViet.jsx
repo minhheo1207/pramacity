@@ -1,117 +1,128 @@
 // src/pages/BaiViet.jsx
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import PageBar from "../components/PageBar";
+import { useEffect, useState, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import Frame from "../components/Frame";
-import { getAllPosts } from "../services/posts";
+import { getAllPosts, getPopularPosts } from "../services/posts";
 
-const CATS = [
-  "Tất cả",
-  "Dinh dưỡng",
-  "Bệnh lý",
-  "Thuốc",
-  "Mẹo sống khỏe",
-  "Tin tức",
-];
-const PAGE_SIZE = 9;
+const INITIAL_DISPLAY_COUNT = 9;
+const LOAD_MORE_COUNT = 9;
 
 export default function BaiViet() {
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("Tất cả");
-  const [sort, setSort] = useState("newest"); // newest | oldest | popular
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [q, setQ] = useState(searchParams.get("q") || "");
+  const [cat, setCat] = useState(searchParams.get("cat") || "Tất cả");
+  const [tag, setTag] = useState(searchParams.get("tag") || "");
+  const [sort, setSort] = useState(searchParams.get("sort") || "newest");
+  const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
   const [loading, setLoading] = useState(true);
+  const [allPosts, setAllPosts] = useState([]);
+  const [popularPosts, setPopularPosts] = useState([]);
+  const [total, setTotal] = useState(0);
 
+  // Fetch posts when filters change - load many posts at once
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(t);
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        // Load many posts at once (200 should be enough for most cases)
+        const result = await getAllPosts({
+          q,
+          cat,
+          tag,
+          sort,
+          page: 1,
+          limit: 200,
+        });
+        setAllPosts(result.posts || []);
+        setTotal(result.pagination?.total || 0);
+        // Reset display count when filters change
+        setDisplayCount(INITIAL_DISPLAY_COUNT);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+        setAllPosts([]);
+        setTotal(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [q, cat, tag, sort]);
+
+  // Fetch popular posts for sidebar
+  useEffect(() => {
+    const fetchPopular = async () => {
+      try {
+        const result = await getPopularPosts(6);
+        setPopularPosts(result);
+      } catch (error) {
+        console.error("Error fetching popular posts:", error);
+        setPopularPosts([]);
+      }
+    };
+
+    fetchPopular();
   }, []);
 
-  const list = useMemo(() => {
-    const norm = (s) => (s || "").toLowerCase().trim();
-    let l = getAllPosts();
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (cat !== "Tất cả") params.set("cat", cat);
+    if (tag) params.set("tag", tag);
+    if (sort !== "newest") params.set("sort", sort);
+    setSearchParams(params, { replace: true });
+  }, [q, cat, tag, sort, setSearchParams]);
 
-    if (cat !== "Tất cả") l = l.filter((p) => p.cat === cat);
-    if (q.trim()) {
-      const k = norm(q);
-      l = l.filter(
-        (p) =>
-          norm(p.title).includes(k) ||
-          norm(p.excerpt).includes(k) ||
-          p.tags.some((t) => norm(t).includes(k))
-      );
+  // Check if tag param exists in URL
+  useEffect(() => {
+    const tagParam = searchParams.get("tag");
+    if (tagParam && tagParam !== tag) {
+      setTag(tagParam);
+      setQ(tagParam); // Also set search query to tag
     }
-    if (sort === "newest") l.sort((a, b) => b.date.localeCompare(a.date));
-    if (sort === "oldest") l.sort((a, b) => a.date.localeCompare(b.date));
-    if (sort === "popular") l.sort((a, b) => b.views - a.views);
-    return l;
-  }, [q, cat, sort]);
+  }, [searchParams, tag]);
 
-  const total = list.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const pageList = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Display only the first displayCount posts
+  const displayedPosts = useMemo(() => {
+    return allPosts.slice(0, displayCount);
+  }, [allPosts, displayCount]);
+
+  const hasMore = allPosts.length > displayCount;
+
+  const handleShowMore = () => {
+    setDisplayCount((prev) => Math.min(prev + LOAD_MORE_COUNT, allPosts.length));
+  };
 
   const updateQ = (v) => {
     setQ(v);
-    setPage(1);
-  };
-  const updateCat = (v) => {
-    setCat(v);
-    setPage(1);
+    setDisplayCount(INITIAL_DISPLAY_COUNT);
   };
   const updateSort = (v) => {
     setSort(v);
-    setPage(1);
+    setDisplayCount(INITIAL_DISPLAY_COUNT);
   };
 
   return (
     <main className="lc blog">
-      <PageBar
-        title="Bài viết"
-        subtitle="Kiến thức sức khỏe, dược học và mẹo sống khỏe mỗi ngày"
-        right={
-          <form className="pb-search" onSubmit={(e) => e.preventDefault()}>
-            <i className="ri-search-line"></i>
-            <input
-              placeholder="Tìm tiêu đề, thẻ tag, nội dung…"
-              value={q}
-              onChange={(e) => updateQ(e.target.value)}
-            />
-          </form>
-        }
-      />
-
       <div className="container blog__wrap">
         {/* Sidebar */}
         <aside className="blog__side">
-          <Frame title="Danh mục">
-            <div className="chips">
-              {CATS.map((c) => (
-                <button
-                  key={c}
-                  className={"chip chip--cat" + (cat === c ? " active" : "")}
-                  onClick={() => updateCat(c)}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </Frame>
-
           <Frame title="Bài nổi bật">
             <ul className="hotlist">
-              {getAllPosts()
-                .sort((a, b) => (b.views || 0) - (a.views || 0))
-                .slice(0, 6)
-                .map((p) => (
+              {popularPosts.length > 0 ? (
+                popularPosts.map((p) => (
                   <li key={p.id}>
                     <Link to={`/bai-viet/${p.id}`}>
                       <span className="dot" />
                       {p.title}
                     </Link>
-                    <em>{p.views.toLocaleString()} lượt xem</em>
+                    <em>{(p.views || 0).toLocaleString()} lượt xem</em>
                   </li>
-                ))}
+                ))
+              ) : (
+                <li className="muted">Đang tải...</li>
+              )}
             </ul>
           </Frame>
         </aside>
@@ -134,7 +145,7 @@ export default function BaiViet() {
 
           {/* Masonry grid */}
           <div className={"blog__masonry" + (loading ? " loading" : "")}>
-            {(loading ? Array.from({ length: 6 }) : pageList).map((p, i) =>
+            {(loading ? Array.from({ length: 6 }) : displayedPosts).map((p, i) =>
               loading ? (
                 <div key={i} className="post post--sk">
                   <div className="sk sk-img" />
@@ -163,14 +174,14 @@ export default function BaiViet() {
                     </h3>
                     <p className="post__excerpt">{p.excerpt}</p>
                     <div className="post__meta">
-                      <span className="chip chip--soft">{fmtDate(p.date)}</span>
-                      <span className="chip chip--soft">
+                      <div className="post__meta-item">{fmtDate(p.date)}</div>
+                      <div className="post__meta-item">
                         {p.readMin} phút đọc
-                      </span>
-                      <span className="chip chip--soft">{p.author}</span>
+                      </div>
+                      <div className="post__meta-item">{p.author}</div>
                     </div>
                     <div className="post__tags">
-                      {p.tags.map((t) => (
+                      {(p.tags || []).map((t) => (
                         <button
                           key={t}
                           className="tag"
@@ -187,34 +198,18 @@ export default function BaiViet() {
             )}
           </div>
 
-          {/* Pagination */}
-          <div className="pager">
-            <button
-              className="btn sm"
-              disabled={page <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              ‹ Trước
-            </button>
-            <div className="pager__pages">
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <button
-                  key={i}
-                  className={"pager__dot" + (page === i + 1 ? " active" : "")}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
+          {/* Nút Xem thêm */}
+          {!loading && hasMore && (
+            <div className="show-more-products">
+              <button
+                className="btn-show-more-products"
+                onClick={handleShowMore}
+              >
+                Xem thêm
+                <i className="ri-arrow-down-s-line"></i>
+              </button>
             </div>
-            <button
-              className="btn sm"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Sau ›
-            </button>
-          </div>
+          )}
         </section>
       </div>
     </main>
